@@ -1,0 +1,11 @@
+{
+  "name": "NIVORA - Advanced AI Assistant",
+  "description": "NIVORA AI is an advanced AI assistant by Sake Mukesh for intelligent answers, web search, voice assistance, content generation, coding, documents, PDFs and more.",
+  "requestFramePermissions": [
+    "microphone",
+    "display-capture"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

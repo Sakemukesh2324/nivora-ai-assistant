@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en" class="startup-active">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIVORA AI – Advanced AI Assistant | Official Website</title>
+    <meta name="description" content="NIVORA AI is an advanced AI assistant developed by Sake Mukesh for intelligent answers, web search, voice assistance, coding assistance, content generation, document and PDF generation, and other AI-powered tools.">
+    <meta name="keywords" content="NIVORA, NIVORA AI, NIVORA AI Assistant, NIVORA official, NIVORA Advanced AI Assistant, NIVORA AI Assistant by Sake Mukesh, AI assistant, web search, voice assistance, coding assistant, document generation, PDF generation, artificial intelligence, Sake Mukesh">
+    <meta name="author" content="Sake Mukesh">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="bingbot" content="index, follow">
+    <link rel="canonical" href="https://nivora.org/">
+
+    <!-- Theme & Mobile Optimizations -->
+    <meta name="theme-color" content="#0d0e15">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="NIVORA AI">
+
+    <!-- Open Graph Metadata -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="NIVORA AI">
+    <meta property="og:title" content="NIVORA AI – Advanced AI Assistant">
+    <meta property="og:description" content="Official NIVORA AI Assistant website">
+    <meta property="og:url" content="https://nivora.org/">
+    <meta property="og:image" content="https://nivora.org/assets/nivora-logo.png">
+    <meta property="og:image:alt" content="NIVORA AI – Advanced AI Assistant Logo">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter / X Metadata -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="NIVORA AI – Advanced AI Assistant">
+    <meta name="twitter:description" content="Official NIVORA AI Assistant website">
+    <meta name="twitter:image" content="https://nivora.org/assets/nivora-logo.png">
+    <meta name="twitter:image:alt" content="NIVORA AI – Advanced AI Assistant Logo">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/nivora-logo.png">
+
+    <!-- Development WebSocket / HMR shield -->
+    <script>
+      (function() {
+        function isBenign(msg) {
+          var s = String(msg || '').toLowerCase();
+          return (s.includes('vite') && s.includes('websocket')) ||
+                 s.includes('failed to connect to websocket') ||
+                 (s.includes('websocket') && s.includes('closed without opened'));
+        }
+        window.addEventListener('unhandledrejection', function(event) {
+          var reason = event && event.reason;
+          var msg = (reason && (reason.message || reason.stack)) || String(reason || '');
+          if (isBenign(msg)) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        });
+        window.addEventListener('error', function(event) {
+          if (isBenign(event.message) || isBenign(event.filename)) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        });
+        var origConsoleError = console.error;
+        console.error = function() {
+          var first = arguments[0];
+          if (isBenign(first)) return;
+          origConsoleError.apply(console, arguments);
+        };
+      })();
+    </script>
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://nivora.org/#website",
+          "url": "https://nivora.org/",
+          "name": "NIVORA AI",
+          "alternateName": [
+            "NIVORA",
+            "NIVORA AI Assistant",
+            "NIVORA official",
+            "NIVORA Advanced AI Assistant",
+            "NIVORA AI Assistant by Sake Mukesh"
+          ],
+          "description": "NIVORA AI is an advanced AI assistant developed by Sake Mukesh for intelligent answers, web search, voice assistance, coding assistance, content generation, document and PDF generation, and other AI-powered tools.",
+          "creator": {
+            "@type": "Person",
+            "name": "Sake Mukesh"
+          },
+          "publisher": {
+            "@type": "Person",
+            "name": "Sake Mukesh"
+          },
+          "inLanguage": "en-US"
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://nivora.org/#application",
+          "name": "NIVORA AI",
+          "alternateName": [
+            "NIVORA",
+            "NIVORA AI Assistant",
+            "NIVORA official",
+            "NIVORA Advanced AI Assistant",
+            "NIVORA AI Assistant by Sake Mukesh"
+          ],
+          "applicationCategory": "ProductivityApplication",
+          "applicationSubCategory": "Artificial Intelligence Assistant",
+          "operatingSystem": "All",
+          "url": "https://nivora.org/",
+          "description": "NIVORA AI is an advanced AI assistant developed by Sake Mukesh for intelligent answers, web search, voice assistance, coding assistance, content generation, document and PDF generation, and other AI-powered tools.",
+          "author": {
+            "@type": "Person",
+            "name": "Sake Mukesh"
+          },
+          "creator": {
+            "@type": "Person",
+            "name": "Sake Mukesh"
+          },
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://nivora.org/#organization",
+          "name": "NIVORA AI",
+          "alternateName": [
+            "NIVORA",
+            "NIVORA official"
+          ],
+          "url": "https://nivora.org/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://nivora.org/assets/nivora-logo.png"
+          },
+          "founder": {
+            "@type": "Person",
+            "name": "Sake Mukesh"
+          }
+        }
+      ]
+    }
+    </script>
+
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="/style.css">
+
+    <!-- Highlight.js for Code Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body class="startup-active">
+
+    <!-- Semantic Header & SEO Heading Hierarchy -->
+    <header class="sr-only">
+        <h1>NIVORA AI – Advanced AI Assistant</h1>
+        <p>NIVORA AI is an advanced AI assistant developed by Sake Mukesh.</p>
+        <p>NIVORA provides intelligent answers, web search, voice assistance, coding assistance, content generation, document and PDF generation, and other AI-powered tools.</p>
+    </header>
+
+    <noscript>
+        <div style="max-width: 720px; margin: 32px auto; padding: 24px; background: #13151f; color: #f1f5f9; border-radius: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; border: 1px solid rgba(255,255,255,0.1);">
+            <h1 style="font-size: 26px; margin-bottom: 12px; color: #60a5fa;">NIVORA AI – Advanced AI Assistant</h1>
+            <p>NIVORA AI is an advanced AI assistant developed by Sake Mukesh.</p>
+            <p>NIVORA provides intelligent answers, web search, voice assistance, coding assistance, content generation, document and PDF generation, and other AI-powered tools.</p>
+            <h2 style="font-size: 18px; margin-top: 20px; margin-bottom: 8px; color: #93c5fd;">Official Capabilities</h2>
+            <ul style="padding-left: 20px;">
+                <li><strong>Intelligent Answers:</strong> Accurate, in-depth responses across engineering, science, writing, and philosophy.</li>
+                <li><strong>Live Web Research:</strong> Real-time verified web research with sources and citations.</li>
+                <li><strong>Full-Stack Coding & Analysis:</strong> Syntax-highlighted code generation, debugging, and multi-language support.</li>
+                <li><strong>Document & File Generation:</strong> Export to PDF, DOCX, XLSX, PPTX, CSV, TXT, and ZIP.</li>
+                <li><strong>Voice Assistance & Live Canvas:</strong> Voice interactions and interactive visual canvas artifacts.</li>
+            </ul>
+        </div>
+    </noscript>
+
+    <!-- ==================================================
+         STARTUP ANIMATION
+    ================================================== -->
+    <div id="startupAnimation" class="startup-animation-overlay">
+        <video
+            id="startupVideo"
+            class="startup-video"
+            src="/assets/nivora-logo-reveal.mp4"
+            autoplay
+            muted
+            playsinline
+            webkit-playsinline
+            preload="auto"
+            tabindex="-1"
+            aria-hidden="true"
+        >
+            <source src="/assets/nivora-logo-reveal.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <!-- ==================================================
+         LOGIN SCREEN
+    ================================================== -->
+    <div class="auth-screen" id="loginScreen" style="display: none;">
+        <div class="auth-card" id="loginCard">
+            <div class="auth-logo">
+                <img src="/assets/nivora-logo.png" alt="NIVORA Logo">
+            </div>
+            <h2>Welcome back</h2>
+            <p class="auth-subtitle">Sign in to continue to NIVORA</p>
+
+            <div class="auth-field">
+                <label for="loginEmail">Email</label>
+                <input type="email" id="loginEmail" placeholder="Enter your email" autocomplete="email">
+            </div>
+
+            <div class="auth-field">
+                <label for="loginPassword">Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="loginPassword" placeholder="Enter your password" autocomplete="current-password">
+                    <button type="button" id="toggleLoginPassword" title="Toggle password visibility">👁</button>
+                </div>
+            </div>
+
+            <div id="loginErrorMessage" class="auth-error-banner" style="display: none;"></div>
+
+            <button type="button" class="forgot-password" id="forgotPasswordBtn">Forgot password?</button>
+            <button type="button" class="auth-primary-btn" id="loginBtn">Login</button>
+
+            <div class="auth-divider"><span>OR</span></div>
+            <button type="button" class="google-auth-btn" id="googleLoginBtn">
+                <span>G</span> Continue with Google
+            </button>
+
+            <div class="auth-switch">
+                Don't have an account?
+                <button type="button" id="createAccountBtn">Create account</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================================================
+         SIGNUP SCREEN
+    ================================================== -->
+    <div class="auth-screen" id="signupScreen" style="display: none;">
+        <div class="auth-card" id="signupCard">
+            <div class="auth-logo">
+                <img src="/assets/nivora-logo.png" alt="NIVORA Logo">
+            </div>
+            <h2>Create account</h2>
+            <p class="auth-subtitle">Create your NIVORA account</p>
+
+            <div class="auth-field">
+                <label for="signupName">Full Name</label>
+                <input type="text" id="signupName" placeholder="Enter your name" autocomplete="name">
+            </div>
+
+            <div class="auth-field">
+                <label for="signupEmail">Email</label>
+                <input type="email" id="signupEmail" placeholder="Enter your email" autocomplete="email">
+            </div>
+
+            <div class="auth-field">
+                <label for="signupPassword">Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="signupPassword" placeholder="Create a password" autocomplete="new-password">
+                    <button type="button" id="toggleSignupPassword">👁</button>
+                </div>
+            </div>
+
+            <div class="auth-field">
+                <label for="signupConfirmPassword">Confirm Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="signupConfirmPassword" placeholder="Confirm your password" autocomplete="new-password">
+                    <button type="button" id="toggleSignupConfirmPassword">👁</button>
+                </div>
+            </div>
+
+            <div id="signupErrorMessage" class="auth-error-banner" style="display: none;"></div>
+
+            <button type="button" class="auth-primary-btn" id="signupBtn">Create Account</button>
+
+            <div class="auth-divider"><span>OR</span></div>
+            <button type="button" class="google-auth-btn" id="googleSignupBtn">
+                <span>G</span> Sign up with Google
+            </button>
+
+            <div class="auth-switch">
+                Already have an account?
+                <button type="button" id="backToLoginBtn">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================================================
+         FORGOT PASSWORD SCREEN (Real Email Verification + OTP)
+    ================================================== -->
+    <div class="auth-screen" id="forgotScreen" style="display: none;">
+        <div class="auth-card glass-modal-card" id="forgotCard">
+            <div class="auth-logo">
+                <img src="/assets/nivora-logo.png" alt="NIVORA AI Assistant Logo">
+            </div>
+            <h2>Reset Password</h2>
+            <p class="auth-subtitle" id="forgotSubtitle">Enter your email address to receive a secure password reset link.</p>
+
+            <div id="forgotMessage" class="auth-error-banner" style="display:none;"></div>
+
+            <!-- STEP 1: ENTER EMAIL -->
+            <div id="forgotStep1">
+                <div class="auth-field">
+                    <label for="forgotEmail">Email Address</label>
+                    <input type="email" id="forgotEmail" placeholder="Enter your email (e.g. name@gmail.com)" autocomplete="email">
+                </div>
+                <button type="button" class="auth-primary-btn" id="sendResetBtn">Send Reset Link</button>
+            </div>
+
+            <!-- STEP 2: RESET LINK DISPATCHED GLASS CARD -->
+            <div id="forgotStep2" style="display:none;" class="glass-notify-panel">
+                <div class="glass-notify-icon">📬</div>
+                <h3 class="glass-notify-title">Password reset email sent</h3>
+                <p class="glass-notify-text" id="forgotSentDetail">
+                    Check your inbox, Spam and Promotions folders. Click the reset link in the email to choose your new password.
+                </p>
+
+                <div class="glass-instructions-box">
+                    <div class="instruction-item">
+                        <span class="instruction-dot">✓</span>
+                        <span>Click the official reset link sent from Firebase to update your password.</span>
+                    </div>
+                    <div class="instruction-item">
+                        <span class="instruction-dot">✓</span>
+                        <span>Cannot find it? Please check your <strong>Spam</strong>, <strong>Junk</strong>, or <strong>Promotions</strong> folder.</span>
+                    </div>
+                </div>
+
+                <div class="resend-section">
+                    <p class="resend-label">Didn't receive the email?</p>
+                    <button type="button" class="auth-secondary-btn" id="resendOtpBtn">Resend Reset Link</button>
+                    <div id="resendCountdown" class="resend-countdown-text" style="display:none;">
+                        Resend available in <strong id="countdownSeconds">60</strong>s
+                    </div>
+                </div>
+
+                <div class="manual-code-option">
+                    <button type="button" id="toggleManualCodeBtn" class="link-btn-subtle" style="margin-top:12px; font-size:12px; color:#a0a7bb; background:none; border:none; cursor:pointer; text-decoration:underline;">
+                        Have a reset link or code? Click here to enter
+                    </button>
+                    <div id="manualCodeForm" style="display:none; margin-top: 10px;">
+                        <input type="text" id="otpCodeInput" placeholder="Paste verification code or link" autocomplete="off" class="glass-code-input" style="width:100%; box-sizing:border-box; text-align:center; font-family:monospace; font-size:13px;">
+                        <div id="otpErrorMessage" class="auth-error-banner" style="display:none; margin-top:8px;"></div>
+                        <div id="otpSuccessMessage" class="auth-success-banner" style="display:none; margin-top:8px;"></div>
+                        <button type="button" class="auth-primary-btn" id="verifyOtpBtn" style="margin-top: 8px;">Verify & Set Password</button>
+                    </div>
+                </div>
+
+                <div style="margin-top: 14px; text-align: center;">
+                    <button type="button" id="backToStep1Btn" style="background: none; border: none; color: #8888a0; font-size: 12px; cursor: pointer;">← Change email</button>
+                </div>
+            </div>
+
+            <div id="forgotSuccessMessage" class="auth-success-banner" style="display:none; margin-top: 14px;"></div>
+
+            <div class="auth-switch">
+                Remember your password?
+                <button type="button" id="backToLoginFromForgotBtn">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================================================
+         PASSWORD RESET SCREEN (Firebase email link recovery)
+    ================================================== -->
+    <div class="auth-screen" id="resetPasswordScreen" style="display: none;">
+        <div class="auth-card" id="resetPasswordCard">
+            <div class="auth-logo">
+                <img src="/assets/nivora-logo.png" alt="NIVORA Logo">
+            </div>
+            <h2>Create New Password</h2>
+            <p class="auth-subtitle" id="resetPasswordSubtitle">Enter your new password below</p>
+
+            <div id="resetErrorMessage" class="auth-error-banner" style="display: none;"></div>
+            <div id="resetSuccessMessage" class="auth-success-banner" style="display: none;"></div>
+
+            <div id="resetActionCodeGroup" class="auth-field" style="display: none;">
+                <label for="resetActionCode">Reset Code</label>
+                <input type="text" id="resetActionCode" placeholder="Enter code from reset email">
+            </div>
+
+            <div id="resetFormFields">
+                <div class="auth-field">
+                    <label for="newResetPassword">New Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="newResetPassword" placeholder="Enter new password (min 6 chars)" autocomplete="new-password">
+                        <button type="button" id="toggleNewResetPassword" title="Toggle password visibility">👁</button>
+                    </div>
+                </div>
+
+                <div class="auth-field">
+                    <label for="confirmResetPassword">Confirm New Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="confirmResetPassword" placeholder="Confirm new password" autocomplete="new-password">
+                        <button type="button" id="toggleConfirmResetPassword" title="Toggle password visibility">👁</button>
+                    </div>
+                </div>
+
+                <button type="button" class="auth-primary-btn" id="submitNewPasswordBtn">Save New Password</button>
+            </div>
+
+            <div class="auth-switch">
+                <button type="button" id="backToLoginFromResetBtn">Back to Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================================================
+         APP SHELL
+    ================================================== -->
+    <div class="app" id="appRoot" style="display: none;">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <button class="sidebar-close" id="sidebarClose" title="Close sidebar">×</button>
+
+            <div class="logo">
+                <div class="logo-icon">
+                    <img src="/assets/nivora-logo.png" alt="NIVORA AI Assistant Logo">
+                </div>
+                <span>NIVORA</span>
+            </div>
+
+            <button class="new-chat" id="newChatButton" type="button">
+                <span>＋</span>
+                <span>New Chat</span>
+            </button>
+
+            <div class="sidebar-search">
+                <button id="searchChats" type="button">
+                    <span>🔍</span>
+                    <span>Search</span>
+                </button>
+            </div>
+
+            <div class="sidebar-menu">
+                <button class="sidebar-option" id="libraryBtn" type="button">
+                    <span>📚</span>
+                    <span>Library</span>
+                </button>
+                <button class="sidebar-option" id="pinnedBtn" type="button">
+                    <span>📌</span>
+                    <span>Pinned</span>
+                </button>
+                <button class="sidebar-option" id="projectsBtn" type="button">
+                    <span>📁</span>
+                    <span>Projects</span>
+                </button>
+            </div>
+
+            <div class="sidebar-title">Recent Chats</div>
+            <div class="chat-list" id="chatList"></div>
+
+            <div class="sidebar-bottom">
+                <div class="sidebar-user" id="sidebarUser" title="View & Edit Profile">
+                    <div class="sidebar-user-avatar" id="sidebarUserAvatar">👤</div>
+                    <div class="sidebar-user-info">
+                        <span class="sidebar-user-name" id="sidebarUserName">NIVORA User</span>
+                        <span class="sidebar-user-email" id="sidebarUserEmail">user@nivora.ai</span>
+                    </div>
+                </div>
+                <button id="settingsBtn" type="button">
+                    <span>⚙</span> Settings
+                </button>
+            </div>
+
+            <div class="nivora-sidebar-resizer" id="sidebarResizer"></div>
+        </aside>
+
+        <!-- SIDEBAR OPEN TOGGLE (MOBILE / COLLAPSED) -->
+        <button class="sidebar-open" id="sidebarOpen" title="Open sidebar">☰</button>
+
+        <!-- CHAT AREA -->
+        <main class="chat-area" id="chatArea">
+            <header class="top-bar">
+                <div class="top-brand">
+                    <div class="logo-icon header-logo">
+                        <img src="/assets/nivora-logo.png" alt="NIVORA AI Assistant Logo">
+                    </div>
+                    <div class="top-brand-text">
+                        <h2>NIVORA</h2>
+                        <span>Your Intelligent AI Assistant</span>
+                    </div>
+                </div>
+
+                <div class="top-actions">
+                    <div class="provider-badge" id="providerBadge">
+                        <span>⚡</span>
+                        <span id="providerName">NIVORA AI</span>
+                    </div>
+
+                    <button class="canvas-toggle-btn" id="topCanvasToggle" type="button" title="Toggle Live Canvas">
+                        <span>🎨</span> Live Canvas
+                    </button>
+
+                    <!-- SEARCH IN CONVERSATION -->
+                    <button class="top-action-icon-btn" id="searchConvTopBtn" type="button" title="Search this conversation">
+                        <span>🔍</span>
+                    </button>
+
+                    <!-- CLEAR CHAT -->
+                    <button class="top-action-icon-btn" id="clearChatTopBtn" type="button" title="Clear current chat">
+                        <span>🗑</span>
+                    </button>
+
+                    <!-- NEW CHAT -->
+                    <button class="top-action-icon-btn" id="newChatTopBtn" type="button" title="Start new chat">
+                        <span>＋</span>
+                    </button>
+
+                    <div class="status">
+                        <span class="status-dot"></span>
+                        <span>Online</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- FLOATING CONVERSATION SEARCH BAR -->
+            <div class="conv-search-bar" id="convSearchBar" style="display:none;">
+                <span class="conv-search-icon">🔍</span>
+                <input type="text" id="convSearchInput" placeholder="Search in this conversation..." autocomplete="off">
+                <span class="conv-search-count" id="convSearchCount"></span>
+                <button type="button" class="conv-search-close" id="closeConvSearchBtn" title="Close search">✕</button>
+            </div>
+
+            <!-- MESSAGES CONTAINER -->
+            <section class="messages" id="messages">
+                <!-- WELCOME SCREEN -->
+                <div class="welcome" id="welcome">
+                    <div class="welcome-logo">
+                        <img src="/assets/nivora-logo.png" alt="NIVORA AI Assistant Logo">
+                    </div>
+                    <h2>How can NIVORA AI help you?</h2>
+                    <p>NIVORA AI is an advanced AI assistant developed by Sake Mukesh. NIVORA provides intelligent answers, web search, voice assistance, coding assistance, content generation, document and PDF generation, and other AI-powered tools.</p>
+                    <div class="welcome-shortcuts">
+                        <button class="shortcut-chip" data-prompt="Generate an interactive solar system simulation in HTML/SVG">🪐 Solar System Canvas</button>
+                        <button class="shortcut-chip" data-prompt="Search the latest breakthroughs in quantum computing and summarize with sources">🔍 Web Research</button>
+                        <button class="shortcut-chip" data-prompt="Write a complete modern REST API in FastAPI with PostgreSQL">⚡ FastAPI Backend</button>
+                        <button class="shortcut-chip" data-prompt="Generate a study guide and flashcards on machine learning fundamentals">📚 ML Study Guide</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- INPUT AREA -->
+            <div class="input-area">
+                <!-- ATTACHMENT TRAY -->
+                <div class="attachment-tray" id="attachmentTray"></div>
+
+                <div class="input-box">
+                    <!-- ATTACH (+) BUTTON & MENU -->
+                    <button class="attach-btn" id="attachBtn" type="button" title="Attach menu">＋</button>
+
+                    <div class="attach-menu" id="attachMenu">
+                        <button type="button" class="attach-menu-item" id="attachOptionFiles">
+                            <span class="attach-menu-icon">📁</span>
+                            <span>Add files or photos</span>
+                        </button>
+                        <button type="button" class="attach-menu-item" id="attachOptionScreenshot">
+                            <span class="attach-menu-icon">📸</span>
+                            <span>Take a screenshot</span>
+                        </button>
+                        <button type="button" class="attach-menu-item" id="attachOptionProject">
+                            <span class="attach-menu-icon">📂</span>
+                            <span>Add to project</span>
+                        </button>
+                        <button type="button" class="attach-menu-item" id="attachOptionSkills">
+                            <span class="attach-menu-icon">⚡</span>
+                            <span>Skills</span>
+                        </button>
+                        <button type="button" class="attach-menu-item" id="attachOptionConnector">
+                            <span class="attach-menu-icon">🔌</span>
+                            <span>Add connector</span>
+                        </button>
+                        <button type="button" class="attach-menu-item" id="attachOptionPlugin">
+                            <span class="attach-menu-icon">🧩</span>
+                            <span>Add plugin</span>
+                        </button>
+                        <button type="button" class="attach-menu-item" id="attachOptionWebSearch">
+                            <span class="attach-menu-icon">🌐</span>
+                            <span>Web search</span>
+                        </button>
+                    </div>
+
+                    <!-- HIDDEN FILE INPUT -->
+                    <input type="file" id="hiddenFileInput" style="display:none;" multiple accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp,image/*,.pdf,.docx,.xlsx,.pptx,.csv,.txt,.md,.zip">
+
+                    <!-- TEXT INPUT -->
+                    <input type="text" id="messageInput" autocomplete="off" placeholder="Message NIVORA...">
+
+                    <!-- VOICE ASSISTANT MIC BUTTON -->
+                    <button class="voice-mic-btn" id="voiceBtn" type="button" title="Voice assistant (Dictate)">🎙</button>
+
+                    <!-- STOP SPEAKING BUTTON -->
+                    <button class="stop-speak-btn" id="stopSpeakBtn" type="button" title="Stop speech">⏹</button>
+
+                    <!-- SEND BUTTON -->
+                    <button class="send-btn" id="sendButton" type="button" title="Send message">➤</button>
+
+                    <!-- STOP GENERATING BUTTON -->
+                    <button class="stop-generate-btn" id="stopGenerateBtn" type="button" style="display:none;" title="Stop generating">
+                        <span class="stop-icon">■</span>
+                    </button>
+                </div>
+
+                <p class="disclaimer">NIVORA can make mistakes. Check important information.</p>
+                <div class="developer-credit">
+                    <span class="credit-dev">Developed by <strong>Sake Mukesh</strong></span>
+                </div>
+            </div>
+        </main>
+
+        <!-- LIVE CANVAS / ARTIFACTS PANEL -->
+        <aside class="artifact-canvas-panel" id="artifactCanvasPanel">
+            <div class="canvas-header">
+                <div class="canvas-title">
+                    <span>⚡</span>
+                    <span id="canvasTitle">Live Canvas</span>
+                </div>
+                <div class="canvas-tabs">
+                    <button type="button" class="canvas-tab-btn active" id="canvasTabPreview">Preview</button>
+                    <button type="button" class="canvas-tab-btn" id="canvasTabCode">Code</button>
+                </div>
+                <div class="canvas-header-actions">
+                    <button type="button" class="canvas-action-btn" id="canvasCopyBtn" title="Copy code">📋 Copy</button>
+                    <button type="button" class="canvas-action-btn" id="canvasPopoutBtn" title="Open in new tab">↗ New Tab</button>
+                    <button type="button" class="panel-close" id="closeCanvasBtn" title="Close canvas">×</button>
+                </div>
+            </div>
+            <div class="canvas-body">
+                <iframe class="canvas-iframe" id="canvasIframe" sandbox="allow-scripts allow-same-origin allow-modals"></iframe>
+                <pre class="canvas-code-view" id="canvasCodeView"></pre>
+            </div>
+        </aside>
+
+        <!-- MOBILE BACKDROP -->
+        <div id="nivoraMobileBackdrop"></div>
+    </div>
+
+    <!-- ==================================================
+         SEARCH MODAL
+    ================================================== -->
+    <div class="search-panel" id="searchPanel">
+        <div class="search-panel-header">
+            <h3>Search Chats</h3>
+            <button id="closeSearch" type="button">×</button>
+        </div>
+        <input type="text" id="chatSearchInput" placeholder="Search your chats..." autocomplete="off">
+        <div class="search-results" id="searchResults"></div>
+    </div>
+
+    <!-- ==================================================
+         LIBRARY PANEL
+    ================================================== -->
+    <div class="feature-panel" id="libraryPanel">
+        <div class="feature-panel-header">
+            <div>
+                <h3>📚 Library</h3>
+                <p>Your saved conversations and files</p>
+            </div>
+            <button class="panel-close" id="closeLibrary" type="button">×</button>
+        </div>
+        <div class="project-list" id="libraryList"></div>
+    </div>
+
+    <!-- ==================================================
+         PINNED PANEL
+    ================================================== -->
+    <div class="feature-panel" id="pinnedPanel">
+        <div class="feature-panel-header">
+            <div>
+                <h3>📌 Pinned Chats</h3>
+                <p>Your important conversations</p>
+            </div>
+            <button class="panel-close" id="closePinned" type="button">×</button>
+        </div>
+        <div class="pinned-list" id="pinnedList"></div>
+    </div>
+
+    <!-- ==================================================
+         PROJECTS PANEL
+    ================================================== -->
+    <div class="feature-panel" id="projectsPanel">
+        <div class="feature-panel-header">
+            <div>
+                <h3>📁 Projects</h3>
+                <p>Organize workspace context and files</p>
+            </div>
+            <button class="panel-close" id="closeProjects" type="button">×</button>
+        </div>
+        <button type="button" class="auth-primary-btn" id="createProjectBtn" style="margin-bottom:14px;">＋ Create New Project</button>
+        <div class="project-list" id="projectsList"></div>
+    </div>
+
+    <!-- ==================================================
+         CREATE PROJECT MODAL
+    ================================================== -->
+    <div class="feature-panel" id="createProjectModal">
+        <div class="feature-panel-header">
+            <div>
+                <h3>📁 Create New Project</h3>
+                <p>Add a project to organize context and files</p>
+            </div>
+            <button class="panel-close" id="closeCreateProject" type="button">×</button>
+        </div>
+        <div class="auth-field" style="margin-bottom: 12px;">
+            <label for="newProjectNameInput">Project Name *</label>
+            <input type="text" id="newProjectNameInput" placeholder="Enter project name" maxlength="80" style="width: 100%; padding: 10px 14px; background: #13151b; border: 1px solid #2d3342; border-radius: 8px; color: #fff; font-size: 14px;">
+        </div>
+        <div class="auth-field" style="margin-bottom: 16px;">
+            <label for="newProjectDescInput">Project Description</label>
+            <textarea id="newProjectDescInput" placeholder="Brief description of this project (optional)..." rows="3" maxlength="400" style="width: 100%; padding: 10px 14px; background: #13151b; border: 1px solid #2d3342; border-radius: 8px; color: #fff; font-size: 13px; resize: vertical;"></textarea>
+        </div>
+        <div id="createProjectError" class="auth-error-banner" style="display: none; margin-bottom: 12px;"></div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="auth-secondary-btn" id="cancelCreateProjectBtn" style="width: auto; padding: 8px 18px;">Cancel</button>
+            <button type="button" class="auth-primary-btn" id="submitCreateProjectBtn" style="width: auto; padding: 8px 18px;">Create Project</button>
+        </div>
+    </div>
+
+    <!-- ==================================================
+         EDIT PROJECT MODAL
+    ================================================== -->
+    <div class="feature-panel" id="editProjectModal">
+        <div class="feature-panel-header">
+            <div>
+                <h3>✏️ Edit Project</h3>
+                <p>Update project name and description</p>
+            </div>
+            <button class="panel-close" id="closeEditProject" type="button">×</button>
+        </div>
+        <div class="auth-field" style="margin-bottom: 12px;">
+            <label for="editProjectNameInput">Project Name *</label>
+            <input type="text" id="editProjectNameInput" placeholder="Project name" maxlength="80" style="width: 100%; padding: 10px 14px; background: #13151b; border: 1px solid #2d3342; border-radius: 8px; color: #fff; font-size: 14px;">
+        </div>
+        <div class="auth-field" style="margin-bottom: 16px;">
+            <label for="editProjectDescInput">Project Description</label>
+            <textarea id="editProjectDescInput" placeholder="Project description..." rows="3" maxlength="400" style="width: 100%; padding: 10px 14px; background: #13151b; border: 1px solid #2d3342; border-radius: 8px; color: #fff; font-size: 13px; resize: vertical;"></textarea>
+        </div>
+        <div id="editProjectError" class="auth-error-banner" style="display: none; margin-bottom: 12px;"></div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="auth-secondary-btn" id="cancelEditProjectBtn" style="width: auto; padding: 8px 18px;">Cancel</button>
+            <button type="button" class="auth-primary-btn" id="saveEditProjectBtn" style="width: auto; padding: 8px 18px;">Save Changes</button>
+        </div>
+    </div>
+
+    <!-- ==================================================
+         DELETE PROJECT MODAL
+    ================================================== -->
+    <div class="feature-panel" id="deleteProjectModal">
+        <div class="feature-panel-header">
+            <div>
+                <h3>🗑 Delete Project</h3>
+                <p>Delete this project?</p>
+            </div>
+            <button class="panel-close" id="closeDeleteProject" type="button">×</button>
+        </div>
+        <p style="font-size: 13px; color: #a0a7b5; margin-bottom: 20px; line-height: 1.5;">This project and its context files will be permanently removed. This action cannot be undone.</p>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="auth-secondary-btn" id="cancelDeleteProjectBtn" style="width: auto; padding: 8px 18px;">Cancel</button>
+            <button type="button" class="auth-primary-btn" id="confirmDeleteProjectBtn" style="width: auto; padding: 8px 18px; background: #e53935; border-color: #e53935;">Delete</button>
+        </div>
+    </div>
+
+    <!-- ==================================================
+         RENAME CONVERSATION MODAL
+    ================================================== -->
+    <div class="feature-panel" id="renameChatModal">
+        <div class="feature-panel-header">
+            <div>
+                <h3>✏️ Rename Conversation</h3>
+                <p>Enter a new name for this chat</p>
+            </div>
+            <button class="panel-close" id="closeRenameChat" type="button">×</button>
+        </div>
+        <div class="auth-field" style="margin-bottom: 16px;">
+            <label for="renameChatInput">Conversation Title</label>
+            <input type="text" id="renameChatInput" placeholder="Enter conversation title" maxlength="100" style="width: 100%; padding: 10px 14px; background: #13151b; border: 1px solid #2d3342; border-radius: 8px; color: #fff; font-size: 14px;">
+        </div>
+        <div id="renameChatError" class="auth-error-banner" style="display: none; margin-bottom: 12px;"></div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="auth-secondary-btn" id="cancelRenameChatBtn" style="width: auto; padding: 8px 18px;">Cancel</button>
+            <button type="button" class="auth-primary-btn" id="saveRenameChatBtn" style="width: auto; padding: 8px 18px;">Save</button>
+        </div>
+    </div>
+
+    <!-- ==================================================
+         EXPORT CHAT MODAL
+    ================================================== -->
+    <div class="feature-panel" id="exportChatModal">
+        <div class="feature-panel-header">
+            <div>
+                <h3>📥 Export Chat</h3>
+                <p>Select your desired format</p>
+            </div>
+            <button class="panel-close" id="closeExportChat" type="button">×</button>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+            <button type="button" class="settings-item" id="exportPdfBtn" style="justify-content: center; padding: 18px; cursor: pointer; flex-direction: column; gap: 6px; text-align: center;">
+                <span style="font-size: 26px;">📄</span>
+                <strong>PDF</strong>
+                <span style="font-size: 11px; color: #858da0;">Formatted PDF document</span>
+            </button>
+            <button type="button" class="settings-item" id="exportTxtBtn" style="justify-content: center; padding: 18px; cursor: pointer; flex-direction: column; gap: 6px; text-align: center;">
+                <span style="font-size: 26px;">📝</span>
+                <strong>TXT</strong>
+                <span style="font-size: 11px; color: #858da0;">Plain text file</span>
+            </button>
+            <button type="button" class="settings-item" id="exportMdBtn" style="justify-content: center; padding: 18px; cursor: pointer; flex-direction: column; gap: 6px; text-align: center;">
+                <span style="font-size: 26px;">📑</span>
+                <strong>Markdown</strong>
+                <span style="font-size: 11px; color: #858da0;">Formatted Markdown</span>
+            </button>
+            <button type="button" class="settings-item" id="exportJsonBtn" style="justify-content: center; padding: 18px; cursor: pointer; flex-direction: column; gap: 6px; text-align: center;">
+                <span style="font-size: 26px;">📦</span>
+                <strong>JSON</strong>
+                <span style="font-size: 11px; color: #858da0;">Structured raw data</span>
+            </button>
+        </div>
+        <div style="display: flex; justify-content: flex-end;">
+            <button type="button" class="auth-secondary-btn" id="cancelExportChatBtn" style="width: auto; padding: 8px 18px;">Cancel</button>
+        </div>
+    </div>
+
+    <!-- ==================================================
+         DELETE CONVERSATION CONFIRMATION MODAL
+    ================================================== -->
+    <div class="feature-panel" id="deleteChatModal">
+        <div class="feature-panel-header">
+            <div>
+                <h3>🗑 Delete Conversation</h3>
+                <p>Delete this conversation?</p>
+            </div>
+            <button class="panel-close" id="closeDeleteChat" type="button">×</button>
+        </div>
+        <p style="font-size: 13px; color: #a0a7b5; margin-bottom: 20px; line-height: 1.5;">This conversation and all messages within it will be permanently deleted from your account. This action cannot be undone.</p>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="auth-secondary-btn" id="cancelDeleteChatBtn" style="width: auto; padding: 8px 18px;">Cancel</button>
+            <button type="button" class="auth-primary-btn" id="confirmDeleteChatBtn" style="width: auto; padding: 8px 18px; background: #e53935; border-color: #e53935;">Delete</button>
+        </div>
+    </div>
+
+    <!-- ==================================================
+         SKILLS MODAL
+    ================================================== -->
+    <div class="feature-panel" id="skillsModal">
+        <div class="feature-panel-header">
+            <div>
+                <h3>⚡ Prompt Skills</h3>
+                <p>Quick reasoning and generation modes</p>
+            </div>
+            <button class="panel-close" onclick="document.getElementById('skillsModal').classList.remove('active')" type="button">×</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+            <button type="button" class="settings-item" onclick="document.getElementById('messageInput').value='Perform a deep, rigorous code review on: ';document.getElementById('skillsModal').classList.remove('active');document.getElementById('messageInput').focus();">
+                <div class="settings-item-icon">💻</div>
+                <div class="settings-item-text"><strong>Deep Code Review</strong><span>Detect bugs, optimize performance, and enforce best practices</span></div>
+            </button>
+            <button type="button" class="settings-item" onclick="document.getElementById('messageInput').value='Explain this topic simply with analogies (ELI5): ';document.getElementById('skillsModal').classList.remove('active');document.getElementById('messageInput').focus();">
+                <div class="settings-item-icon">💡</div>
+                <div class="settings-item-text"><strong>Explain Like I\'m 5</strong><span>Break down complex technical topics into intuitive analogies</span></div>
+            </button>
+            <button type="button" class="settings-item" onclick="document.getElementById('messageInput').value='Generate a comprehensive study plan with flashcards and MCQs for: ';document.getElementById('skillsModal').classList.remove('active');document.getElementById('messageInput').focus();">
+                <div class="settings-item-icon">📖</div>
+                <div class="settings-item-text"><strong>Smart Study Mode</strong><span>Synthesize study notes, flashcards, and quizzes</span></div>
+            </button>
+            <button type="button" class="settings-item" onclick="document.getElementById('messageInput').value='Conduct a deep research report with verified sources on: ';document.getElementById('skillsModal').classList.remove('active');document.getElementById('messageInput').focus();">
+                <div class="settings-item-icon">🔬</div>
+                <div class="settings-item-text"><strong>Deep Research Report</strong><span>Cross-check multiple reliable sources and synthesize findings</span></div>
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================================================
+         CONNECTORS MODAL
+    ================================================== -->
+    <div class="feature-panel" id="connectorsModal">
+        <div class="feature-panel-header">
+            <div>
+                <h3>🔌 External Connectors</h3>
+                <p>Integrate third-party services securely</p>
+            </div>
+            <button class="panel-close" onclick="document.getElementById('connectorsModal').classList.remove('active')" type="button">×</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+            <div class="settings-item">
+                <div class="settings-item-icon">📁</div>
+                <div class="settings-item-text"><strong>Google Drive</strong><span>Read and summarize documents and sheets</span></div>
+                <span style="font-size:11px;color:#20c879;">Ready</span>
+            </div>
+            <div class="settings-item">
+                <div class="settings-item-icon">🐙</div>
+                <div class="settings-item-text"><strong>GitHub</strong><span>Analyze repositories, pull requests, and commits</span></div>
+                <span style="font-size:11px;color:#20c879;">Ready</span>
+            </div>
+            <div class="settings-item">
+                <div class="settings-item-icon">✉️</div>
+                <div class="settings-item-text"><strong>Gmail & Calendar</strong><span>Draft emails and summarize schedule</span></div>
+                <span style="font-size:11px;color:#858da0;">Configurable</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================================================
+         PLUGINS MODAL
+    ================================================== -->
+    <div class="feature-panel" id="pluginsModal">
+        <div class="feature-panel-header">
+            <div>
+                <h3>🧩 AI Plugins</h3>
+                <p>Extend NIVORA with specialized computational tools</p>
+            </div>
+            <button class="panel-close" onclick="document.getElementById('pluginsModal').classList.remove('active')" type="button">×</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+            <div class="settings-item">
+                <div class="settings-item-icon">🧮</div>
+                <div class="settings-item-text"><strong>Wolfram Alpha & Math Engine</strong><span>Solve symbolic math, differential equations, and physics</span></div>
+                <span style="font-size:11px;color:#20c879;">Active</span>
+            </div>
+            <div class="settings-item">
+                <div class="settings-item-icon">⚡</div>
+                <div class="settings-item-text"><strong>Python Code Interpreter</strong><span>Execute data science scripts and charts safely</span></div>
+                <span style="font-size:11px;color:#20c879;">Active</span>
+            </div>
+            <div class="settings-item">
+                <div class="settings-item-icon">📚</div>
+                <div class="settings-item-text"><strong>Academic Scholar Search</strong><span>Query peer-reviewed arXiv and scientific papers</span></div>
+                <span style="font-size:11px;color:#20c879;">Active</span>
+            </div>
+            <div class="settings-item">
+                <div class="settings-item-icon">🕷️</div>
+                <div class="settings-item-text"><strong>Live Web Scraper</strong><span>Extract structured table data and Markdown from URLs</span></div>
+                <span style="font-size:11px;color:#20c879;">Active</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================================================
+         SETTINGS PANEL (ACCORDION)
+    ================================================== -->
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-header">
+            <div>
+                <h3>⚙ Settings</h3>
+                <p>Manage your NIVORA account and preferences</p>
+            </div>
+            <button id="closeSettings" type="button">×</button>
+        </div>
+
+        <div class="settings-section">
+            <div class="settings-section-title">Profile & Identity</div>
+            <button class="settings-item" id="profileBtn" type="button">
+                <div class="settings-item-icon">👤</div>
+                <div class="settings-item-text">
+                    <strong>Profile</strong>
+                    <span>View and update your account details</span>
+                </div>
+                <span class="settings-arrow">›</span>
+            </button>
+        </div>
+
+        <div class="settings-section">
+            <div class="settings-section-title">Account</div>
+            <button class="settings-item" id="googleSignInBtn" type="button">
+                <div class="settings-item-icon">🔐</div>
+                <div class="settings-item-text">
+                    <strong>Account</strong>
+                    <span>Authentication and security</span>
+                </div>
+                <span class="settings-arrow">›</span>
+            </button>
+        </div>
+
+        <div class="settings-section">
+            <div class="settings-section-title">Memory & Personalization</div>
+            <button class="settings-item" id="memoryBtn" type="button">
+                <div class="settings-item-icon">🧠</div>
+                <div class="settings-item-text">
+                    <strong>Safe Memory System</strong>
+                    <span>Manage remembered preferences and instructions</span>
+                </div>
+                <span class="settings-arrow">›</span>
+            </button>
+        </div>
+
+        <div class="settings-section">
+            <div class="settings-section-title">Chat Management</div>
+            <button class="settings-item" id="historyBtn" type="button">
+                <div class="settings-item-icon">🕘</div>
+                <div class="settings-item-text">
+                    <strong>Chat History</strong>
+                    <span>View saved conversation sessions</span>
+                </div>
+                <span class="settings-status">ON</span>
+            </button>
+
+            <button class="settings-item" id="clearHistoryBtn" type="button">
+                <div class="settings-item-icon">🗑</div>
+                <div class="settings-item-text">
+                    <strong>Clear Chat History</strong>
+                    <span>Remove all saved conversations</span>
+                </div>
+                <span class="settings-arrow">›</span>
+            </button>
+        </div>
+
+        <div class="settings-section">
+            <div class="settings-section-title">Session</div>
+            <button class="settings-item" id="signOutBtn" type="button">
+                <div class="settings-item-icon">↪</div>
+                <div class="settings-item-text">
+                    <strong>Sign out</strong>
+                    <span>Sign out of this NIVORA device</span>
+                </div>
+                <span class="settings-arrow">›</span>
+            </button>
+        </div>
+
+        <div class="settings-section">
+            <div class="settings-section-title">About</div>
+            <div class="about-nivora">
+                <img src="/assets/nivora-logo.png" alt="NIVORA AI Assistant Logo">
+                <div>
+                    <strong>NIVORA</strong>
+                    <span>Your Intelligent AI Assistant</span>
+                </div>
+            </div>
+            <div class="developer-settings">
+                <div>Developed by <strong>Sake Mukesh</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Preview Modal (iOS Glass) -->
+    <div class="glass-modal-overlay" id="imagePreviewModal" style="display:none;">
+        <div class="glass-modal-content image-modal-content">
+            <button type="button" class="glass-modal-close" id="closeImagePreviewBtn" title="Close Preview">✕</button>
+            <div class="image-preview-stage">
+                <img id="imagePreviewImg" src="" alt="Preview">
+            </div>
+            <div class="image-preview-bar">
+                <div class="image-preview-info">
+                    <h4 id="imagePreviewTitle">Image Title</h4>
+                    <span id="imagePreviewSource" class="image-preview-source">Source</span>
+                </div>
+                <div class="image-preview-actions">
+                    <a id="imagePreviewLink" href="#" target="_blank" rel="noopener noreferrer" class="glass-action-btn">
+                        <span>Visit Page ↗</span>
+                    </a>
+                    <a id="imageDownloadBtn" href="#" download="nivora-image.jpg" class="glass-action-btn primary">
+                        <span>Download ⬇</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Preview Modal (Liquid Glass) -->
+    <div class="glass-modal-overlay" id="filePreviewModal" style="display:none;">
+        <div class="glass-modal-content file-modal-content">
+            <div class="file-modal-header">
+                <div class="file-modal-title-wrap">
+                    <span id="filePreviewIcon" class="file-modal-icon">📄</span>
+                    <div>
+                        <h4 id="filePreviewTitle" class="file-modal-title">document.pdf</h4>
+                        <span id="filePreviewSize" class="file-modal-size">12.4 KB</span>
+                    </div>
+                </div>
+                <button type="button" class="glass-modal-close" id="closeFilePreviewBtn" title="Close Preview">✕</button>
+            </div>
+            <div class="file-preview-stage" id="filePreviewStage">
+                <!-- Dynamic Iframe or Text Viewer -->
+            </div>
+            <div class="file-preview-bar">
+                <div class="file-preview-note">Generated by NIVORA AI</div>
+                <div class="file-preview-actions">
+                    <a id="fileDownloadModalBtn" href="#" download class="glass-action-btn primary">
+                        <span>Download ⬇</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Avatar Input -->
+    <input type="file" id="profileAvatarInput" style="display:none;" accept="image/png,image/jpeg,image/webp,image/gif">
+
+    <!-- Firebase Authentication & Application Scripts -->
+    <script type="module" src="/src/firebaseAuth.ts"></script>
+    <script src="/app.js" defer></script>
+</body>
+</html>

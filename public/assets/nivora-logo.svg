@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="nivoraGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7e74ff"/>
+      <stop offset="50%" stop-color="#635bff"/>
+      <stop offset="100%" stop-color="#4a3df5"/>
+    </linearGradient>
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a39aff" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#635bff" stop-opacity="0.2"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="28" fill="#181b22"/>
+  <rect x="6" y="6" width="108" height="108" rx="22" fill="url(#nivoraGrad)"/>
+  <path d="M 36 86 V 34 L 72 74 V 34 H 84 V 86 L 48 46 V 86 Z" fill="#ffffff" filter="drop-shadow(0 2px 8px rgba(0,0,0,0.35))"/>
+</svg>
