@@ -17,6 +17,35 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="NIVORA AI">
+    <script>
+      (function() {
+        try {
+          var t = localStorage.getItem('nivora_theme') || 'dark';
+          document.documentElement.setAttribute('data-theme', t);
+          if (t === 'ghost') {
+            var l = document.createElement('link');
+            l.id = 'ghostThemeStylesheet';
+            l.rel = 'stylesheet';
+            l.href = '/ghost-theme.css';
+            document.head.appendChild(l);
+          }
+          var ct = localStorage.getItem('nivora_custom_theme');
+          if (ct) {
+            document.documentElement.setAttribute('data-custom-theme', ct);
+            if (ct === 'oceanic-blue') {
+              document.documentElement.style.setProperty('--custom-primary', '#0ea5e9');
+              document.documentElement.style.setProperty('--theme-accent', '#0ea5e9');
+            } else if (ct === 'cyberpunk-neon') {
+              document.documentElement.style.setProperty('--custom-primary', '#ec4899');
+              document.documentElement.style.setProperty('--theme-accent', '#ec4899');
+            } else if (ct === 'minimalist-slate') {
+              document.documentElement.style.setProperty('--custom-primary', '#94a3b8');
+              document.documentElement.style.setProperty('--theme-accent', '#94a3b8');
+            }
+          }
+        } catch(e) {}
+      })();
+    </script>
 
     <!-- Open Graph Metadata -->
     <meta property="og:type" content="website">
@@ -66,6 +95,12 @@
           var first = arguments[0];
           if (isBenign(first)) return;
           origConsoleError.apply(console, arguments);
+        };
+        var origConsoleWarn = console.warn;
+        console.warn = function() {
+          var first = arguments[0];
+          if (isBenign(first)) return;
+          origConsoleWarn.apply(console, arguments);
         };
       })();
     </script>
@@ -156,6 +191,14 @@
     <!-- Highlight.js for Code Highlighting -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+    <!-- Marked & DOMPurify for ChatGPT-Grade Formatting & Paste Preservation -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+    <!-- Diagram, 3D & Utility Libraries for AI Creation Assistant -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -425,7 +468,7 @@
 
         <!-- SIDEBAR -->
         <aside class="sidebar" id="sidebar">
-            <button class="sidebar-close" id="sidebarClose" title="Close sidebar">×</button>
+            <button class="sidebar-close" id="sidebarClose" title="Close sidebar (Ctrl+Shift+L or ⌘Shift+L)">×</button>
 
             <div class="logo">
                 <div class="logo-icon">
@@ -447,6 +490,10 @@
             </div>
 
             <div class="sidebar-menu">
+                <button class="sidebar-option" id="creationHubSidebarBtn" type="button">
+                    <span>✨</span>
+                    <span>Creation Studio</span>
+                </button>
                 <button class="sidebar-option" id="libraryBtn" type="button">
                     <span>📚</span>
                     <span>Library</span>
@@ -481,7 +528,7 @@
         </aside>
 
         <!-- SIDEBAR OPEN TOGGLE (MOBILE / COLLAPSED) -->
-        <button class="sidebar-open" id="sidebarOpen" title="Open sidebar">☰</button>
+        <button class="sidebar-open" id="sidebarOpen" title="Open sidebar (Ctrl+Shift+L or ⌘Shift+L)">☰</button>
 
         <!-- CHAT AREA -->
         <main class="chat-area" id="chatArea">
@@ -501,6 +548,10 @@
                         <span>⚡</span>
                         <span id="providerName">NIVORA AI</span>
                     </div>
+
+                    <button class="canvas-toggle-btn creation-hub-top-btn" id="topCreationHubBtn" type="button" title="Open AI Creation & Generation Studio">
+                        <span>✨</span> Create
+                    </button>
 
                     <button class="canvas-toggle-btn" id="topCanvasToggle" type="button" title="Toggle Live Canvas">
                         <span>🎨</span> Live Canvas
@@ -560,10 +611,218 @@
                 <div class="attachment-tray" id="attachmentTray"></div>
 
                 <div class="input-box">
+                    <!-- HIDDEN PEEKING ROBOT ASSISTANT -->
+                    <div class="nivora-peek-robot" id="nivoraRobot" role="button" tabindex="0" aria-label="NIVORA AI companion robot" title="NIVORA AI Companion – Click to interact!">
+                        <!-- Speech Bubble -->
+                        <div class="nivora-robot-speech" id="nivoraRobotSpeech" aria-live="polite">
+                            <span class="speech-text" id="nivoraRobotSpeechText"></span>
+                        </div>
+
+                        <svg class="robot-svg-root" viewBox="0 0 160 148" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <defs>
+                                <linearGradient id="robotBodyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stop-color="#ffffff"/>
+                                    <stop offset="35%" stop-color="#f8fafc"/>
+                                    <stop offset="70%" stop-color="#e2e8f0"/>
+                                    <stop offset="100%" stop-color="#cbd5e1"/>
+                                </linearGradient>
+                                <linearGradient id="robotMetalDark" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#94a3b8"/>
+                                    <stop offset="100%" stop-color="#475569"/>
+                                </linearGradient>
+                                <linearGradient id="robotVisorGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stop-color="#0b0f19"/>
+                                    <stop offset="65%" stop-color="#04060a"/>
+                                    <stop offset="100%" stop-color="#020408"/>
+                                </linearGradient>
+                                <linearGradient id="robotVisorGloss" x1="0%" y1="0%" x2="70%" y2="100%">
+                                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.32"/>
+                                    <stop offset="45%" stop-color="#ffffff" stop-opacity="0.06"/>
+                                    <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+                                </linearGradient>
+                                <linearGradient id="robotEyeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stop-color="#38bdf8"/>
+                                    <stop offset="55%" stop-color="#6366f1"/>
+                                    <stop offset="100%" stop-color="#818cf8"/>
+                                </linearGradient>
+                                <linearGradient id="robotEarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#f1f5f9"/>
+                                    <stop offset="50%" stop-color="#cbd5e1"/>
+                                    <stop offset="100%" stop-color="#64748b"/>
+                                </linearGradient>
+                                <linearGradient id="robotAntennaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stop-color="#38bdf8"/>
+                                    <stop offset="100%" stop-color="#6366f1"/>
+                                </linearGradient>
+                                <filter id="robotEyeGlow" x="-50%" y="-50%" width="200%" height="200%">
+                                    <feGaussianBlur stdDeviation="2.2" result="blur"/>
+                                    <feMerge>
+                                        <feMergeNode in="blur"/>
+                                        <feMergeNode in="SourceGraphic"/>
+                                    </feMerge>
+                                </filter>
+                                <filter id="robotAntennaGlow" x="-50%" y="-50%" width="200%" height="200%">
+                                    <feGaussianBlur stdDeviation="3" result="blur"/>
+                                    <feMerge>
+                                        <feMergeNode in="blur"/>
+                                        <feMergeNode in="SourceGraphic"/>
+                                    </feMerge>
+                                </filter>
+                                <filter id="robotSparkleGlow" x="-50%" y="-50%" width="200%" height="200%">
+                                    <feGaussianBlur stdDeviation="2" result="blur"/>
+                                    <feMerge>
+                                        <feMergeNode in="blur"/>
+                                        <feMergeNode in="SourceGraphic"/>
+                                    </feMerge>
+                                </filter>
+                            </defs>
+
+                            <!-- LEGS & FEET -->
+                            <g class="robot-legs-group">
+                                <!-- Left Leg -->
+                                <g class="robot-leg robot-leg-left" id="robotLegLeft">
+                                    <ellipse cx="64" cy="112" rx="4" ry="4" fill="url(#robotMetalDark)"/>
+                                    <rect x="62" y="112" width="4.5" height="20" rx="2.2" fill="url(#robotBodyGrad)" stroke="#94a3b8" stroke-width="0.8"/>
+                                    <!-- Foot -->
+                                    <path d="M 56 132 C 56 129, 70 129, 71 132 L 72 135 C 72 137, 55 137, 55 135 Z" fill="#cbd5e1" stroke="#64748b" stroke-width="0.8"/>
+                                </g>
+                                <!-- Right Leg -->
+                                <g class="robot-leg robot-leg-right" id="robotLegRight">
+                                    <ellipse cx="88" cy="112" rx="4" ry="4" fill="url(#robotMetalDark)"/>
+                                    <rect x="85.5" y="112" width="4.5" height="20" rx="2.2" fill="url(#robotBodyGrad)" stroke="#94a3b8" stroke-width="0.8"/>
+                                    <!-- Foot -->
+                                    <path d="M 81 132 C 81 129, 95 129, 96 132 L 97 135 C 97 137, 80 137, 80 135 Z" fill="#cbd5e1" stroke="#64748b" stroke-width="0.8"/>
+                                </g>
+                            </g>
+
+                            <!-- TORSO / CHEST -->
+                            <g class="robot-torso-group">
+                                <path d="M 44 80 C 42 104, 52 114, 76 114 C 100 114, 110 104, 108 80 Z" fill="url(#robotBodyGrad)" stroke="#cbd5e1" stroke-width="1.2"/>
+                                <!-- Chest Plate Inset -->
+                                <rect x="56" y="86" width="40" height="22" rx="6" fill="#131824" stroke="#334155" stroke-width="1"/>
+                                <!-- NIVORA 'N' Glowing Emblem -->
+                                <path class="robot-chest-emblem" d="M 70 101 L 70 93 L 81 101 L 81 93" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                            </g>
+
+                            <!-- ARMS & HANDS -->
+                            <g class="robot-arm robot-arm-left" id="robotArmLeft">
+                                <ellipse cx="42" cy="85" rx="5" ry="5" fill="url(#robotMetalDark)"/>
+                                <rect x="36" y="85" width="5.5" height="24" rx="2.7" fill="url(#robotBodyGrad)" stroke="#94a3b8" stroke-width="0.8"/>
+                                <!-- Left Hand (3 mechanical fingers) -->
+                                <g class="robot-hand-left">
+                                    <ellipse cx="39" cy="112" rx="6" ry="3.5" fill="#cbd5e1"/>
+                                    <rect x="33.5" y="110" width="3.5" height="10" rx="1.7" fill="#ffffff" stroke="#94a3b8" stroke-width="0.7"/>
+                                    <rect x="38" y="110" width="3.5" height="11.5" rx="1.7" fill="#ffffff" stroke="#94a3b8" stroke-width="0.7"/>
+                                    <rect x="42.5" y="110" width="3.5" height="10" rx="1.7" fill="#ffffff" stroke="#94a3b8" stroke-width="0.7"/>
+                                </g>
+                            </g>
+
+                            <g class="robot-arm robot-arm-right" id="robotArmRight">
+                                <ellipse cx="110" cy="85" rx="5" ry="5" fill="url(#robotMetalDark)"/>
+                                <rect x="110.5" y="85" width="5.5" height="24" rx="2.7" fill="url(#robotBodyGrad)" stroke="#94a3b8" stroke-width="0.8"/>
+                                <!-- Right Hand (3 mechanical fingers) -->
+                                <g class="robot-hand-right" id="robotRightHand">
+                                    <ellipse cx="113" cy="112" rx="6" ry="3.5" fill="#cbd5e1"/>
+                                    <rect x="106" y="110" width="3.5" height="10" rx="1.7" fill="#ffffff" stroke="#94a3b8" stroke-width="0.7"/>
+                                    <rect x="110.5" y="110" width="3.5" height="11.5" rx="1.7" fill="#ffffff" stroke="#94a3b8" stroke-width="0.7"/>
+                                    <rect x="115" y="110" width="3.5" height="10" rx="1.7" fill="#ffffff" stroke="#94a3b8" stroke-width="0.7"/>
+                                    <!-- Thumbs Up / OK Hand Gesture (for DONE reaction) -->
+                                    <g class="robot-hand-thumbs-up" id="robotHandThumbsUp">
+                                        <circle cx="113" cy="108" r="13" fill="#38bdf8" opacity="0.3" filter="url(#robotSparkleGlow)" class="robot-hand-glow"/>
+                                        <path d="M 111 96 C 111 92, 115 90, 117 90 C 119 90, 120 93, 120 98 L 120 105 L 123 105 C 125 105, 126 107, 126 109 L 123 118 L 110 118 Z" fill="#ffffff" stroke="#64748b" stroke-width="0.8"/>
+                                    </g>
+                                </g>
+                            </g>
+
+                            <!-- ROBOT HEAD & VISOR GROUP -->
+                            <g class="robot-head-group">
+                                <!-- Left Ear Module -->
+                                <g class="robot-ear robot-ear-left">
+                                    <ellipse cx="24" cy="54" rx="8" ry="14" fill="url(#robotEarGrad)" stroke="#64748b" stroke-width="1"/>
+                                    <ellipse class="robot-ear-accent" cx="23" cy="54" rx="3.5" ry="8" fill="#38bdf8" opacity="0.8"/>
+                                </g>
+
+                                <!-- Right Ear Module -->
+                                <g class="robot-ear robot-ear-right">
+                                    <ellipse cx="128" cy="54" rx="8" ry="14" fill="url(#robotEarGrad)" stroke="#64748b" stroke-width="1"/>
+                                    <ellipse class="robot-ear-accent" cx="129" cy="54" rx="3.5" ry="8" fill="#38bdf8" opacity="0.8"/>
+                                </g>
+
+                                <!-- Antenna -->
+                                <g class="robot-antenna-group">
+                                    <ellipse cx="76" cy="24" rx="7" ry="2.2" fill="#64748b"/>
+                                    <rect x="74.5" y="12" width="3" height="12" rx="1.5" fill="#94a3b8"/>
+                                    <circle class="robot-antenna-tip" cx="76" cy="9" r="5.5" fill="url(#robotAntennaGrad)" filter="url(#robotAntennaGlow)"/>
+                                    <circle cx="75" cy="7.5" r="1.8" fill="#ffffff" opacity="0.85"/>
+                                </g>
+
+                                <!-- Head Outer Shell (Glossy 3D Pill/Dome) -->
+                                <rect x="27" y="23" width="98" height="64" rx="32" fill="url(#robotBodyGrad)" stroke="#cbd5e1" stroke-width="1.5"/>
+                                <!-- Top Rim Highlight -->
+                                <ellipse cx="76" cy="29" rx="36" ry="3.5" fill="#ffffff" opacity="0.75"/>
+
+                                <!-- Face Visor (Dark Glossy Glass) -->
+                                <rect class="robot-visor" x="37" y="33" width="78" height="44" rx="22" fill="url(#robotVisorGrad)" stroke="#1e293b" stroke-width="1.2"/>
+                                <!-- Visor Curved Glass Reflection Highlight -->
+                                <path d="M 45 39 C 57 35, 77 35, 99 40 C 91 43, 69 42, 47 44 Z" fill="url(#robotVisorGloss)"/>
+
+                                <!-- Visor Expressions & Eyes -->
+                                <g class="robot-eyes-group" id="robotEyesGroup">
+                                    <!-- Normal Idle Eyes -->
+                                    <rect class="robot-eye robot-eye-left" x="53" y="45" width="14" height="18" rx="7" fill="url(#robotEyeGrad)" filter="url(#robotEyeGlow)"/>
+                                    <circle class="robot-pupil robot-pupil-left" cx="57.5" cy="49.5" r="2.2" fill="#ffffff" opacity="0.95"/>
+
+                                    <rect class="robot-eye robot-eye-right" x="85" y="45" width="14" height="18" rx="7" fill="url(#robotEyeGrad)" filter="url(#robotEyeGlow)"/>
+                                    <circle class="robot-pupil robot-pupil-right" cx="89.5" cy="49.5" r="2.2" fill="#ffffff" opacity="0.95"/>
+
+                                    <!-- Happy Excited Eyes (^ ^ arcs) -->
+                                    <path class="robot-eye-happy robot-eye-happy-left" d="M 51 59 Q 60 43 69 59" stroke="url(#robotEyeGrad)" stroke-width="4.5" stroke-linecap="round" fill="none" filter="url(#robotEyeGlow)"/>
+                                    <path class="robot-eye-happy robot-eye-happy-right" d="M 83 59 Q 92 43 101 59" stroke="url(#robotEyeGrad)" stroke-width="4.5" stroke-linecap="round" fill="none" filter="url(#robotEyeGlow)"/>
+
+                                    <!-- Sad Watery Eyes (v v droopy curved arcs for CRY state) -->
+                                    <path class="robot-eye-sad robot-eye-sad-left" d="M 52 48 Q 60 62 68 48" stroke="#38bdf8" stroke-width="4.2" stroke-linecap="round" fill="none" filter="url(#robotEyeGlow)"/>
+                                    <path class="robot-eye-sad robot-eye-sad-right" d="M 84 48 Q 92 62 100 48" stroke="#38bdf8" stroke-width="4.2" stroke-linecap="round" fill="none" filter="url(#robotEyeGlow)"/>
+
+                                    <!-- Animated Tears (falling from both eyes) -->
+                                    <g class="robot-tears-group" id="robotTearsGroup">
+                                        <ellipse class="robot-tear robot-tear-left robot-tear-1" cx="59" cy="62" rx="2.5" ry="4" fill="#38bdf8" filter="url(#robotSparkleGlow)"/>
+                                        <ellipse class="robot-tear robot-tear-left robot-tear-2" cx="62" cy="70" rx="2.2" ry="3.5" fill="#00f5ff" filter="url(#robotSparkleGlow)"/>
+                                        <ellipse class="robot-tear robot-tear-right robot-tear-1" cx="93" cy="62" rx="2.5" ry="4" fill="#38bdf8" filter="url(#robotSparkleGlow)"/>
+                                        <ellipse class="robot-tear robot-tear-right robot-tear-2" cx="90" cy="70" rx="2.2" ry="3.5" fill="#00f5ff" filter="url(#robotSparkleGlow)"/>
+                                    </g>
+
+                                    <!-- Visor Digital Mouth / Expression Line -->
+                                    <path class="robot-mouth" id="robotMouth" d="M 70 67 Q 76 68 82 67" stroke="#38bdf8" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+
+                                    <!-- Digital Blush Cheeks -->
+                                    <ellipse class="robot-blush robot-blush-left" cx="47" cy="63" rx="3.5" ry="1.6" fill="#f43f5e" opacity="0"/>
+                                    <ellipse class="robot-blush robot-blush-right" cx="105" cy="63" rx="3.5" ry="1.6" fill="#f43f5e" opacity="0"/>
+                                </g>
+                            </g>
+
+                            <!-- Dance Floating Stars / Particles (for HAPPY DANCE) -->
+                            <g class="robot-dance-particles" id="robotDanceParticles">
+                                <path class="robot-dance-star star-1" d="M 16 42 Q 16 46 20 46 Q 16 46 16 50 Q 16 46 12 46 Q 16 46 16 42 Z" fill="#facc15" filter="url(#robotSparkleGlow)"/>
+                                <path class="robot-dance-star star-2" d="M 142 38 Q 142 42 146 42 Q 142 42 142 46 Q 142 42 138 42 Q 142 42 142 38 Z" fill="#38bdf8" filter="url(#robotSparkleGlow)"/>
+                                <path class="robot-dance-star star-3" d="M 136 82 Q 136 85 139 85 Q 136 85 136 88 Q 136 85 133 85 Q 136 85 136 82 Z" fill="#ec4899" filter="url(#robotSparkleGlow)"/>
+                                <circle class="robot-dance-star star-4" cx="22" cy="78" r="2.5" fill="#a855f7" filter="url(#robotSparkleGlow)"/>
+                            </g>
+
+                            <!-- Sparkles / Aura Effects -->
+                            <path class="robot-sparkle robot-sparkle-1" d="M 128 20 Q 128 25 133 25 Q 128 25 128 30 Q 128 25 123 25 Q 128 25 128 20 Z" fill="#38bdf8" filter="url(#robotSparkleGlow)"/>
+                            <path class="robot-sparkle robot-sparkle-2" d="M 23 24 Q 23 29 28 29 Q 23 29 23 34 Q 23 29 18 29 Q 23 29 23 24 Z" fill="#818cf8" filter="url(#robotSparkleGlow)"/>
+                            <circle class="robot-sparkle robot-sparkle-3" cx="92" cy="11" r="2.5" fill="#c084fc" filter="url(#robotSparkleGlow)"/>
+                        </svg>
+                    </div>
+
                     <!-- ATTACH (+) BUTTON & MENU -->
                     <button class="attach-btn" id="attachBtn" type="button" title="Attach menu">＋</button>
 
                     <div class="attach-menu" id="attachMenu">
+                        <button type="button" class="attach-menu-item" id="attachOptionCreationHub">
+                            <span class="attach-menu-icon">✨</span>
+                            <span>AI Creation Studio</span>
+                        </button>
                         <button type="button" class="attach-menu-item" id="attachOptionFiles">
                             <span class="attach-menu-icon">📁</span>
                             <span>Add files or photos</span>
@@ -597,8 +856,11 @@
                     <!-- HIDDEN FILE INPUT -->
                     <input type="file" id="hiddenFileInput" style="display:none;" multiple accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp,image/*,.pdf,.docx,.xlsx,.pptx,.csv,.txt,.md,.zip">
 
-                    <!-- TEXT INPUT -->
-                    <input type="text" id="messageInput" autocomplete="off" placeholder="Message NIVORA...">
+                    <!-- TEXT / MULTILINE INPUT -->
+                    <textarea id="messageInput" rows="1" autocomplete="off" placeholder="Message NIVORA..." title="Message NIVORA (Ctrl+K or ⌘K)"></textarea>
+
+                    <!-- KEYBOARD SHORTCUT BADGE -->
+                    <kbd class="chat-input-shortcut-badge" id="chatInputShortcutBadge" title="Focus chat input (Ctrl+K or ⌘K)">Ctrl K</kbd>
 
                     <!-- VOICE ASSISTANT MIC BUTTON -->
                     <button class="voice-mic-btn" id="voiceBtn" type="button" title="Voice assistant (Dictate)">🎙</button>
@@ -864,19 +1126,19 @@
             <button class="panel-close" onclick="document.getElementById('skillsModal').classList.remove('active')" type="button">×</button>
         </div>
         <div style="display:flex;flex-direction:column;gap:8px;">
-            <button type="button" class="settings-item" onclick="document.getElementById('messageInput').value='Perform a deep, rigorous code review on: ';document.getElementById('skillsModal').classList.remove('active');document.getElementById('messageInput').focus();">
+            <button type="button" class="settings-item" onclick="const mi=document.getElementById('messageInput');mi.value='Perform a deep, rigorous code review on: ';mi.dispatchEvent(new Event('input',{bubbles:true}));document.getElementById('skillsModal').classList.remove('active');mi.focus();">
                 <div class="settings-item-icon">💻</div>
                 <div class="settings-item-text"><strong>Deep Code Review</strong><span>Detect bugs, optimize performance, and enforce best practices</span></div>
             </button>
-            <button type="button" class="settings-item" onclick="document.getElementById('messageInput').value='Explain this topic simply with analogies (ELI5): ';document.getElementById('skillsModal').classList.remove('active');document.getElementById('messageInput').focus();">
+            <button type="button" class="settings-item" onclick="const mi=document.getElementById('messageInput');mi.value='Explain this topic simply with analogies (ELI5): ';mi.dispatchEvent(new Event('input',{bubbles:true}));document.getElementById('skillsModal').classList.remove('active');mi.focus();">
                 <div class="settings-item-icon">💡</div>
                 <div class="settings-item-text"><strong>Explain Like I\'m 5</strong><span>Break down complex technical topics into intuitive analogies</span></div>
             </button>
-            <button type="button" class="settings-item" onclick="document.getElementById('messageInput').value='Generate a comprehensive study plan with flashcards and MCQs for: ';document.getElementById('skillsModal').classList.remove('active');document.getElementById('messageInput').focus();">
+            <button type="button" class="settings-item" onclick="const mi=document.getElementById('messageInput');mi.value='Generate a comprehensive study plan with flashcards and MCQs for: ';mi.dispatchEvent(new Event('input',{bubbles:true}));document.getElementById('skillsModal').classList.remove('active');mi.focus();">
                 <div class="settings-item-icon">📖</div>
                 <div class="settings-item-text"><strong>Smart Study Mode</strong><span>Synthesize study notes, flashcards, and quizzes</span></div>
             </button>
-            <button type="button" class="settings-item" onclick="document.getElementById('messageInput').value='Conduct a deep research report with verified sources on: ';document.getElementById('skillsModal').classList.remove('active');document.getElementById('messageInput').focus();">
+            <button type="button" class="settings-item" onclick="const mi=document.getElementById('messageInput');mi.value='Conduct a deep research report with verified sources on: ';mi.dispatchEvent(new Event('input',{bubbles:true}));document.getElementById('skillsModal').classList.remove('active');mi.focus();">
                 <div class="settings-item-icon">🔬</div>
                 <div class="settings-item-text"><strong>Deep Research Report</strong><span>Cross-check multiple reliable sources and synthesize findings</span></div>
             </button>
@@ -997,6 +1259,18 @@
         </div>
 
         <div class="settings-section">
+            <div class="settings-section-title">Appearance & Theme</div>
+            <button class="settings-item" id="appearanceBtn" type="button">
+                <div class="settings-item-icon">🎨</div>
+                <div class="settings-item-text">
+                    <strong>Appearance</strong>
+                    <span id="settingsThemeSubtitle">☀️ Light, 🌙 Dark, 👻 Ghost</span>
+                </div>
+                <span class="settings-arrow">›</span>
+            </button>
+        </div>
+
+        <div class="settings-section">
             <div class="settings-section-title">Chat Management</div>
             <button class="settings-item" id="historyBtn" type="button">
                 <div class="settings-item-icon">🕘</div>
@@ -1015,6 +1289,32 @@
                 </div>
                 <span class="settings-arrow">›</span>
             </button>
+        </div>
+
+        <div class="settings-section">
+            <div class="settings-section-title">Navigation & Shortcuts</div>
+            <div class="settings-shortcuts-card">
+                <div class="shortcut-row">
+                    <span class="shortcut-desc">Focus Chat Input</span>
+                    <kbd class="shortcut-key-combo"><span class="shortcut-mod">Ctrl</span> + K</kbd>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-desc">Toggle Sidebar</span>
+                    <kbd class="shortcut-key-combo"><span class="shortcut-mod">Ctrl</span> + Shift + L</kbd>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-desc">Send Message</span>
+                    <kbd class="shortcut-key-combo">Enter</kbd>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-desc">New Line in Chat</span>
+                    <kbd class="shortcut-key-combo">Shift + Enter</kbd>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-desc">Close Modals / Previews</span>
+                    <kbd class="shortcut-key-combo">Esc</kbd>
+                </div>
+            </div>
         </div>
 
         <div class="settings-section">
@@ -1040,6 +1340,13 @@
             </div>
             <div class="developer-settings">
                 <div>Developed by <strong>Sake Mukesh</strong></div>
+            </div>
+        </div>
+
+        <div class="settings-section project-contributors-section" id="projectContributorsSection">
+            <div class="settings-section-title" style="text-transform: none !important;">Project Contributors</div>
+            <div class="developer-settings" style="margin-top: 4px; color: #cbd5e1; font-size: 12px; line-height: 1.5;">
+                <div>• NavyaSree</div>
             </div>
         </div>
     </div>
@@ -1095,11 +1402,643 @@
         </div>
     </div>
 
+    <!-- ==================================================
+         NIVORA AI CREATION & GENERATION STUDIO
+    ================================================== -->
+    <div class="glass-modal-overlay creation-studio-overlay" id="creationStudioModal" style="display:none;">
+        <div class="glass-modal-content creation-studio-content">
+            <div class="creation-studio-header">
+                <div class="studio-header-left">
+                    <span class="studio-badge-icon">✨</span>
+                    <div>
+                        <h3 class="studio-title">NIVORA Creation Studio</h3>
+                        <p class="studio-subtitle">Generative AI Engine • Images, Design, Docs, Data, 3D & Audio</p>
+                    </div>
+                </div>
+                <div class="studio-header-actions">
+                    <button type="button" class="studio-tab-btn" id="studioQuickGalleryBtn" title="View Recent Creations">📁 My Gallery</button>
+                    <button type="button" class="glass-modal-close" id="closeCreationStudioBtn" title="Close Studio">✕</button>
+                </div>
+            </div>
+
+            <!-- Studio Navigation Bar -->
+            <div class="studio-nav-bar" id="studioNavBar" role="tablist">
+                <button type="button" class="studio-nav-item active" data-tab="images">🖼️ Images & Art</button>
+                <button type="button" class="studio-nav-item" data-tab="logos">🎨 Logos & Posters</button>
+                <button type="button" class="studio-nav-item" data-tab="editor">🪄 Image Editor</button>
+                <button type="button" class="studio-nav-item" data-tab="social">📱 Social Media</button>
+                <button type="button" class="studio-nav-item" data-tab="presentations">📽️ Presentations & Docs</button>
+                <button type="button" class="studio-nav-item" data-tab="sheets">📊 Sheets & Data</button>
+                <button type="button" class="studio-nav-item" data-tab="diagrams">🔀 Diagrams & Charts</button>
+                <button type="button" class="studio-nav-item" data-tab="3d-audio">🧊 3D & Audio</button>
+                <button type="button" class="studio-nav-item" data-tab="qr">📱 QR Codes</button>
+            </div>
+
+            <!-- Studio Body Container -->
+            <div class="studio-body" id="studioBody">
+
+                <!-- 1. IMAGES & ART PANEL -->
+                <div class="studio-panel active" id="studioPanelImages">
+                    <div class="studio-grid-layout">
+                        <div class="studio-controls-col">
+                            <label class="studio-label">Describe what you want to create</label>
+                            <div class="studio-input-wrap">
+                                <textarea id="studioImagePrompt" rows="3" class="studio-textarea" placeholder="e.g. A futuristic neon cyber city at twilight with glowing flying vehicles and reflective rain puddles..."></textarea>
+                                <button type="button" class="studio-enhance-prompt-btn" id="studioImageEnhanceBtn" title="Enhance prompt with AI detail">✨ Enhance Prompt</button>
+                            </div>
+
+                            <div class="studio-form-row">
+                                <div class="studio-field">
+                                    <label class="studio-label">Aspect Ratio</label>
+                                    <select id="studioImageAspectRatio" class="studio-select">
+                                        <option value="1:1" selected>Square (1:1)</option>
+                                        <option value="16:9">Landscape (16:9)</option>
+                                        <option value="9:16">Portrait / Mobile (9:16)</option>
+                                        <option value="4:3">Standard (4:3)</option>
+                                        <option value="3:4">Tall (3:4)</option>
+                                    </select>
+                                </div>
+                                <div class="studio-field">
+                                    <label class="studio-label">Variations</label>
+                                    <select id="studioImageVariations" class="studio-select">
+                                        <option value="1" selected>1 Image</option>
+                                        <option value="2">2 Variations</option>
+                                        <option value="4">4 Variations Grid</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <label class="studio-label">Visual Style</label>
+                            <div class="studio-styles-grid" id="studioImageStylesGrid">
+                                <button type="button" class="studio-style-chip active" data-style="photorealistic">📸 Photorealistic</button>
+                                <button type="button" class="studio-style-chip" data-style="cinematic">🎬 Cinematic</button>
+                                <button type="button" class="studio-style-chip" data-style="anime">⚡ Anime</button>
+                                <button type="button" class="studio-style-chip" data-style="3d">🧊 3D Render</button>
+                                <button type="button" class="studio-style-chip" data-style="cyberpunk">🌆 Cyberpunk</button>
+                                <button type="button" class="studio-style-chip" data-style="illustration">🎨 Illustration</button>
+                                <button type="button" class="studio-style-chip" data-style="digital art">🖌️ Digital Art</button>
+                                <button type="button" class="studio-style-chip" data-style="watercolor">💧 Watercolor</button>
+                                <button type="button" class="studio-style-chip" data-style="oil painting">🖼️ Oil Painting</button>
+                                <button type="button" class="studio-style-chip" data-style="cartoon">🧸 Cartoon</button>
+                                <button type="button" class="studio-style-chip" data-style="minimalist">⚪ Minimalist</button>
+                                <button type="button" class="studio-style-chip" data-style="product photography">📦 Product Photo</button>
+                                <button type="button" class="studio-style-chip" data-style="wallpaper">🌌 Wallpaper</button>
+                            </div>
+
+                            <button type="button" class="studio-primary-action-btn" id="studioImageGenerateBtn">
+                                <span>✨ Generate Image</span>
+                            </button>
+                        </div>
+
+                        <!-- Result Preview Stage -->
+                        <div class="studio-preview-col">
+                            <div class="studio-preview-card" id="studioImagePreviewCard">
+                                <div class="studio-empty-state" id="studioImageEmptyState">
+                                    <span class="studio-empty-icon">🎨</span>
+                                    <h4>Your creation will appear here</h4>
+                                    <p>Select your style and aspect ratio, enter a prompt, and click generate.</p>
+                                </div>
+                                <div class="studio-loading-state" id="studioImageLoadingState" style="display:none;">
+                                    <div class="studio-spinner"></div>
+                                    <h4 id="studioLoadingStageText">Generating AI Masterpiece...</h4>
+                                    <p>Crafting high-resolution pixels and lighting</p>
+                                </div>
+                                <div class="studio-result-stage" id="studioImageResultStage" style="display:none;">
+                                    <div class="studio-variations-grid" id="studioVariationsGrid"></div>
+                                    <div class="studio-result-actions" id="studioResultActions">
+                                        <button type="button" class="studio-action-pill" id="studioDownloadBtn">⬇ Download High-Res</button>
+                                        <button type="button" class="studio-action-pill" id="studioCopyImageBtn">📋 Copy Image</button>
+                                        <button type="button" class="studio-action-pill" id="studioSendToChatBtn">💬 Send to Chat</button>
+                                        <button type="button" class="studio-action-pill" id="studioRegenBtn">🔄 Regenerate</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. LOGOS & POSTERS PANEL -->
+                <div class="studio-panel" id="studioPanelLogos" style="display:none;">
+                    <div class="studio-grid-layout">
+                        <div class="studio-controls-col">
+                            <div class="studio-type-toggle">
+                                <button type="button" class="studio-pill-toggle active" id="studioToggleLogoMode">Modern Logo</button>
+                                <button type="button" class="studio-pill-toggle" id="studioTogglePosterMode">Event & Creative Poster</button>
+                            </div>
+
+                            <label class="studio-label" id="studioBrandPromptLabel">Brand Name & Logo Concept</label>
+                            <textarea id="studioLogoPrompt" rows="2" class="studio-textarea" placeholder="e.g. NIVORA AI - Next generation artificial intelligence companion, sleek lettermark"></textarea>
+
+                            <div id="studioLogoStylesWrap">
+                                <label class="studio-label">Logo Style</label>
+                                <div class="studio-styles-grid" id="studioLogoStylesGrid">
+                                    <button type="button" class="studio-style-chip active" data-logostyle="minimal">Minimalist</button>
+                                    <button type="button" class="studio-style-chip" data-logostyle="3d">3D Modern</button>
+                                    <button type="button" class="studio-style-chip" data-logostyle="futuristic">Futuristic / Cyber</button>
+                                    <button type="button" class="studio-style-chip" data-logostyle="gaming">Gaming Emblem</button>
+                                    <button type="button" class="studio-style-chip" data-logostyle="corporate">Corporate / FinTech</button>
+                                    <button type="button" class="studio-style-chip" data-logostyle="luxury">Luxury Monogram</button>
+                                    <button type="button" class="studio-style-chip" data-logostyle="tech">Tech Icon</button>
+                                    <button type="button" class="studio-style-chip" data-logostyle="mascot">Cute Mascot</button>
+                                </div>
+                            </div>
+
+                            <div id="studioPosterStylesWrap" style="display:none;">
+                                <label class="studio-label">Poster Type</label>
+                                <div class="studio-styles-grid" id="studioPosterStylesGrid">
+                                    <button type="button" class="studio-style-chip active" data-posterstyle="event">Event Poster</button>
+                                    <button type="button" class="studio-style-chip" data-posterstyle="college">College Fest</button>
+                                    <button type="button" class="studio-style-chip" data-posterstyle="hackathon">Hackathon</button>
+                                    <button type="button" class="studio-style-chip" data-posterstyle="movie">Cinematic Movie</button>
+                                    <button type="button" class="studio-style-chip" data-posterstyle="gaming">Gaming Tournament</button>
+                                    <button type="button" class="studio-style-chip" data-posterstyle="ad">Product Launch</button>
+                                </div>
+                            </div>
+
+                            <button type="button" class="studio-primary-action-btn" id="studioLogoGenerateBtn">
+                                <span>✨ Create Design</span>
+                            </button>
+                        </div>
+
+                        <div class="studio-preview-col">
+                            <div class="studio-preview-card" id="studioLogoPreviewCard">
+                                <div class="studio-empty-state" id="studioLogoEmptyState">
+                                    <span class="studio-empty-icon">🛡️</span>
+                                    <h4>Logo & Poster Canvas</h4>
+                                    <p>Design stunning vectors, corporate logos, mascots, or high-impact posters.</p>
+                                </div>
+                                <div class="studio-loading-state" id="studioLogoLoadingState" style="display:none;">
+                                    <div class="studio-spinner"></div>
+                                    <h4>Rendering Design...</h4>
+                                </div>
+                                <div class="studio-result-stage" id="studioLogoResultStage" style="display:none;">
+                                    <div class="studio-variations-grid" id="studioLogoVariationsGrid"></div>
+                                    <div class="studio-result-actions">
+                                        <button type="button" class="studio-action-pill" id="studioDownloadLogoBtn">⬇ Download PNG</button>
+                                        <button type="button" class="studio-action-pill" id="studioDownloadLogoSvgBtn">⬇ Download SVG</button>
+                                        <button type="button" class="studio-action-pill" id="studioSendLogoToChatBtn">💬 Send to Chat</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. IMAGE EDITOR PANEL (Original -> Edited) -->
+                <div class="studio-panel" id="studioPanelEditor" style="display:none;">
+                    <div class="studio-grid-layout">
+                        <div class="studio-controls-col">
+                            <label class="studio-label">1. Upload Source Image</label>
+                            <div class="studio-upload-box" id="studioEditorDropZone">
+                                <input type="file" id="studioEditorFileInput" accept="image/*" style="display:none;">
+                                <div class="studio-upload-inner" id="studioEditorUploadPrompt">
+                                    <span>📸</span>
+                                    <p>Click or drag image to edit</p>
+                                    <span class="studio-upload-hint">PNG, JPG, WEBP up to 15MB</span>
+                                </div>
+                                <div class="studio-upload-preview-wrap" id="studioEditorSourcePreview" style="display:none;">
+                                    <img id="studioEditorSourceImg" alt="Original Upload">
+                                    <button type="button" class="studio-remove-source-btn" id="studioEditorClearSourceBtn" title="Remove image">✕</button>
+                                </div>
+                            </div>
+
+                            <label class="studio-label">2. Quick One-Click Actions</label>
+                            <div class="studio-styles-grid" id="studioEditorPresetsGrid">
+                                <button type="button" class="studio-style-chip" data-edit="Remove the background, make transparent isolate">✂️ Remove Background</button>
+                                <button type="button" class="studio-style-chip" data-edit="Enhance lighting and make it cinematic 8k">🎬 Make Cinematic</button>
+                                <button type="button" class="studio-style-chip" data-edit="Turn this into modern high quality anime style">⚡ Anime Transformation</button>
+                                <button type="button" class="studio-style-chip" data-edit="Upscale details, sharpen, improve quality, remove noise">🔍 Upscale & Restore</button>
+                                <button type="button" class="studio-style-chip" data-edit="Add a cute futuristic robot companion next to the subject">🤖 Add Robot</button>
+                                <button type="button" class="studio-style-chip" data-edit="Change the background to a breathtaking futuristic skyline">🏙️ Change Background</button>
+                                <button type="button" class="studio-style-chip" data-edit="Change the clothes to elegant futuristic cyber attire">👔 Change Outfit</button>
+                                <button type="button" class="studio-style-chip" data-edit="Warm golden hour studio rim lighting">☀️ Studio Lighting</button>
+                            </div>
+
+                            <label class="studio-label">3. Custom Edit Instruction</label>
+                            <textarea id="studioEditorInstruction" rows="2" class="studio-textarea" placeholder="e.g. Turn the background into a snowy mountain peak at sunrise..."></textarea>
+
+                            <button type="button" class="studio-primary-action-btn" id="studioEditorRunBtn">
+                                <span>🪄 Apply AI Transformation</span>
+                            </button>
+                        </div>
+
+                        <div class="studio-preview-col">
+                            <div class="studio-preview-card" id="studioEditorPreviewCard">
+                                <div class="studio-empty-state" id="studioEditorEmptyState">
+                                    <span class="studio-empty-icon">🪄</span>
+                                    <h4>Original → Edited Comparison</h4>
+                                    <p>Upload an image on the left and choose an edit instruction to see the transformation.</p>
+                                </div>
+                                <div class="studio-loading-state" id="studioEditorLoadingState" style="display:none;">
+                                    <div class="studio-spinner"></div>
+                                    <h4>Transforming Image...</h4>
+                                    <p>Preserving subject while applying intelligent modifications</p>
+                                </div>
+                                <div class="studio-comparison-wrap" id="studioEditorComparisonWrap" style="display:none;">
+                                    <div class="comparison-card">
+                                        <div class="comparison-badge original">Original</div>
+                                        <img id="comparisonOriginalImg" alt="Original">
+                                    </div>
+                                    <div class="comparison-divider">➜</div>
+                                    <div class="comparison-card">
+                                        <div class="comparison-badge edited">Edited with AI</div>
+                                        <img id="comparisonEditedImg" alt="Edited">
+                                    </div>
+                                </div>
+                                <div class="studio-result-actions" id="studioEditorActions" style="display:none;">
+                                    <button type="button" class="studio-action-pill" id="studioDownloadEditedBtn">⬇ Download Edited</button>
+                                    <button type="button" class="studio-action-pill" id="studioSendEditedToChatBtn">💬 Send to Chat</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. SOCIAL MEDIA PANEL -->
+                <div class="studio-panel" id="studioPanelSocial" style="display:none;">
+                    <div class="studio-grid-layout">
+                        <div class="studio-controls-col">
+                            <label class="studio-label">Select Social Media Format</label>
+                            <div class="social-presets-grid" id="socialPresetsGrid">
+                                <div class="social-preset-card active" data-preset="instagram-post" data-ar="1:1">
+                                    <span class="social-icon">📸</span>
+                                    <strong>Instagram Post</strong>
+                                    <small>1080 × 1080 (1:1)</small>
+                                </div>
+                                <div class="social-preset-card" data-preset="instagram-story" data-ar="9:16">
+                                    <span class="social-icon">📱</span>
+                                    <strong>IG Story / Reels</strong>
+                                    <small>1080 × 1920 (9:16)</small>
+                                </div>
+                                <div class="social-preset-card" data-preset="youtube-thumbnail" data-ar="16:9">
+                                    <span class="social-icon">🔴</span>
+                                    <strong>YouTube Thumbnail</strong>
+                                    <small>1280 × 720 (16:9)</small>
+                                </div>
+                                <div class="social-preset-card" data-preset="youtube-banner" data-ar="16:9">
+                                    <span class="social-icon">📺</span>
+                                    <strong>YouTube Banner</strong>
+                                    <small>2560 × 1440</small>
+                                </div>
+                                <div class="social-preset-card" data-preset="linkedin-banner" data-ar="16:9">
+                                    <span class="social-icon">💼</span>
+                                    <strong>LinkedIn Banner</strong>
+                                    <small>1584 × 396</small>
+                                </div>
+                                <div class="social-preset-card" data-preset="twitter-header" data-ar="16:9">
+                                    <span class="social-icon">🐦</span>
+                                    <strong>X / Twitter Header</strong>
+                                    <small>1500 × 500</small>
+                                </div>
+                                <div class="social-preset-card" data-preset="facebook-post" data-ar="16:9">
+                                    <span class="social-icon">📘</span>
+                                    <strong>Facebook Post</strong>
+                                    <small>1200 × 630</small>
+                                </div>
+                                <div class="social-preset-card" data-preset="tiktok-cover" data-ar="9:16">
+                                    <span class="social-icon">🎵</span>
+                                    <strong>TikTok Cover</strong>
+                                    <small>1080 × 1920 (9:16)</small>
+                                </div>
+                            </div>
+
+                            <label class="studio-label">Topic / Content Description</label>
+                            <textarea id="studioSocialPrompt" rows="2" class="studio-textarea" placeholder="e.g. Tech review thumbnail with vibrant neon title card and expressive tech creator vibe..."></textarea>
+
+                            <button type="button" class="studio-primary-action-btn" id="studioSocialGenerateBtn">
+                                <span>✨ Generate Social Media Asset</span>
+                            </button>
+                        </div>
+
+                        <div class="studio-preview-col">
+                            <div class="studio-preview-card" id="studioSocialPreviewCard">
+                                <div class="studio-empty-state" id="studioSocialEmptyState">
+                                    <span class="studio-empty-icon">📱</span>
+                                    <h4>Social Media Canvas</h4>
+                                    <p>Select a platform format to generate pixel-perfect graphics and covers.</p>
+                                </div>
+                                <div class="studio-loading-state" id="studioSocialLoadingState" style="display:none;">
+                                    <div class="studio-spinner"></div>
+                                    <h4>Generating Social Asset...</h4>
+                                </div>
+                                <div class="studio-result-stage" id="studioSocialResultStage" style="display:none;">
+                                    <img id="studioSocialResultImg" class="studio-preview-img" alt="Social Asset">
+                                    <div class="studio-result-actions">
+                                        <button type="button" class="studio-action-pill" id="studioDownloadSocialBtn">⬇ Download Asset</button>
+                                        <button type="button" class="studio-action-pill" id="studioSendSocialToChatBtn">💬 Send to Chat</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. PRESENTATIONS & DOCS PANEL -->
+                <div class="studio-panel" id="studioPanelPresentations" style="display:none;">
+                    <div class="studio-grid-layout">
+                        <div class="studio-controls-col">
+                            <label class="studio-label">Document or Deck Type</label>
+                            <div class="studio-type-toggle">
+                                <button type="button" class="studio-pill-toggle active" id="toggleDocPptx">Slide Deck (.pptx)</button>
+                                <button type="button" class="studio-pill-toggle" id="toggleDocPdf">Formal PDF Report</button>
+                                <button type="button" class="studio-pill-toggle" id="toggleDocResume">Resume / CV</button>
+                                <button type="button" class="studio-pill-toggle" id="toggleDocProposal">Business Proposal</button>
+                            </div>
+
+                            <label class="studio-label">Topic / Subject</label>
+                            <input type="text" id="studioPresentationTopic" class="studio-input" placeholder="e.g. Artificial General Intelligence & Machine Learning Architecture in 2026">
+
+                            <div class="studio-form-row">
+                                <div class="studio-field">
+                                    <label class="studio-label">Number of Slides / Sections</label>
+                                    <select id="studioPresentationSlidesCount" class="studio-select">
+                                        <option value="4">4 Slides (Quick Brief)</option>
+                                        <option value="6" selected>6 Slides (Standard Deck)</option>
+                                        <option value="8">8 Slides (Detailed Pitch)</option>
+                                        <option value="10">10 Slides (Comprehensive)</option>
+                                    </select>
+                                </div>
+                                <div class="studio-field">
+                                    <label class="studio-label">Visual Theme</label>
+                                    <select id="studioPresentationStyle" class="studio-select">
+                                        <option value="Modern Tech Dark" selected>Modern Dark Tech</option>
+                                        <option value="Minimalist Executive">Minimalist Executive</option>
+                                        <option value="Creative Vibrant">Creative Vibrant</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button type="button" class="studio-primary-action-btn" id="studioGenerateDeckBtn">
+                                <span>📽️ Build Presentation & Download PPTX</span>
+                            </button>
+                        </div>
+
+                        <div class="studio-preview-col">
+                            <div class="studio-preview-card" id="studioDeckPreviewCard">
+                                <div class="studio-empty-state" id="studioDeckEmptyState">
+                                    <span class="studio-empty-icon">📊</span>
+                                    <h4>Presentation & Document Preview</h4>
+                                    <p>AI will generate structured slides with bullet points, themes, and downloadable PPTX/PDF.</p>
+                                </div>
+                                <div class="studio-loading-state" id="studioDeckLoadingState" style="display:none;">
+                                    <div class="studio-spinner"></div>
+                                    <h4>Structuring Presentation Slides...</h4>
+                                </div>
+                                <div class="studio-result-stage" id="studioDeckResultStage" style="display:none;">
+                                    <div class="deck-slides-carousel" id="studioDeckSlidesContainer"></div>
+                                    <div class="studio-result-actions">
+                                        <a href="#" download id="studioDownloadDeckBtn" class="studio-action-pill primary">⬇ Download PPTX</a>
+                                        <button type="button" class="studio-action-pill" id="studioSendDeckToChatBtn">💬 Send to Chat</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. SHEETS & DATA PANEL -->
+                <div class="studio-panel" id="studioPanelSheets" style="display:none;">
+                    <div class="studio-grid-layout">
+                        <div class="studio-controls-col">
+                            <label class="studio-label">Spreadsheet Template / Purpose</label>
+                            <div class="studio-styles-grid" id="studioSheetTemplateGrid">
+                                <button type="button" class="studio-style-chip active" data-sheet="Personal Monthly Budget Planner with categories, projected vs actual">💰 Budget Planner</button>
+                                <button type="button" class="studio-style-chip" data-sheet="Startup 12-Month Financial Model and revenue projections">📈 Financial Model</button>
+                                <button type="button" class="studio-style-chip" data-sheet="B2B Sales Pipeline and CRM lead tracker">💼 Sales Tracker</button>
+                                <button type="button" class="studio-style-chip" data-sheet="Product Inventory Sheet with SKU, cost, price, margin, quantity">📦 Inventory Sheet</button>
+                                <button type="button" class="studio-style-chip" data-sheet="Marketing Campaign Schedule and ROI tracker across channels">📣 Marketing Schedule</button>
+                            </div>
+
+                            <label class="studio-label">Custom Requirements / Columns</label>
+                            <textarea id="studioSheetPrompt" rows="3" class="studio-textarea" placeholder="e.g. Include columns: Item, Category, Estimated Cost, Actual Cost, Variance, Notes. Pre-populate 8 realistic rows."></textarea>
+
+                            <button type="button" class="studio-primary-action-btn" id="studioGenerateSheetBtn">
+                                <span>📊 Generate Excel (.XLSX) & CSV</span>
+                            </button>
+                        </div>
+
+                        <div class="studio-preview-col">
+                            <div class="studio-preview-card" id="studioSheetPreviewCard">
+                                <div class="studio-empty-state" id="studioSheetEmptyState">
+                                    <span class="studio-empty-icon">📑</span>
+                                    <h4>Interactive Data Grid</h4>
+                                    <p>Spreadsheet will render in an interactive table with instant XLSX and CSV downloads.</p>
+                                </div>
+                                <div class="studio-loading-state" id="studioSheetLoadingState" style="display:none;">
+                                    <div class="studio-spinner"></div>
+                                    <h4>Computing Data & Formulas...</h4>
+                                </div>
+                                <div class="studio-result-stage" id="studioSheetResultStage" style="display:none;">
+                                    <div class="studio-table-viewer-wrap" id="studioTableViewer"></div>
+                                    <div class="studio-result-actions">
+                                        <a href="#" download id="studioDownloadXlsxBtn" class="studio-action-pill primary">⬇ Download Excel (.xlsx)</a>
+                                        <a href="#" download id="studioDownloadCsvBtn" class="studio-action-pill">⬇ Download CSV</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7. DIAGRAMS & FLOWCHARTS PANEL -->
+                <div class="studio-panel" id="studioPanelDiagrams" style="display:none;">
+                    <div class="studio-grid-layout">
+                        <div class="studio-controls-col">
+                            <label class="studio-label">Diagram Type</label>
+                            <div class="studio-styles-grid" id="studioDiagramTypesGrid">
+                                <button type="button" class="studio-style-chip active" data-diag="flowchart">Process Flowchart</button>
+                                <button type="button" class="studio-style-chip" data-diag="architecture">System Architecture</button>
+                                <button type="button" class="studio-style-chip" data-diag="mindmap">Mind Map</button>
+                                <button type="button" class="studio-style-chip" data-diag="er">ER Diagram (Database)</button>
+                                <button type="button" class="studio-style-chip" data-diag="sequence">Sequence Diagram</button>
+                                <button type="button" class="studio-style-chip" data-diag="org">Org Chart</button>
+                            </div>
+
+                            <label class="studio-label">Describe the Process or System</label>
+                            <textarea id="studioDiagramPrompt" rows="3" class="studio-textarea" placeholder="e.g. User authentication flow with Google OAuth, JWT tokens, refresh token rotation, and Firebase database fallback..."></textarea>
+
+                            <button type="button" class="studio-primary-action-btn" id="studioGenerateDiagramBtn">
+                                <span>🔀 Render Interactive Flowchart</span>
+                            </button>
+                        </div>
+
+                        <div class="studio-preview-col">
+                            <div class="studio-preview-card" id="studioDiagramPreviewCard">
+                                <div class="studio-empty-state" id="studioDiagramEmptyState">
+                                    <span class="studio-empty-icon">🔀</span>
+                                    <h4>Interactive Vector Flowchart</h4>
+                                    <p>Diagrams render dynamically with zoom, pan, copy SVG, and export capabilities.</p>
+                                </div>
+                                <div class="studio-loading-state" id="studioDiagramLoadingState" style="display:none;">
+                                    <div class="studio-spinner"></div>
+                                    <h4>Drawing Vector Diagram...</h4>
+                                </div>
+                                <div class="studio-result-stage" id="studioDiagramResultStage" style="display:none;">
+                                    <div class="studio-mermaid-stage" id="studioMermaidStage"></div>
+                                    <div class="studio-result-actions">
+                                        <button type="button" class="studio-action-pill" id="studioCopyDiagramSvgBtn">📋 Copy SVG</button>
+                                        <button type="button" class="studio-action-pill" id="studioDownloadDiagramSvgBtn">⬇ Download SVG</button>
+                                        <button type="button" class="studio-action-pill" id="studioSendDiagramToChatBtn">💬 Send to Chat</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 8. 3D & AUDIO STUDIO PANEL -->
+                <div class="studio-panel" id="studioPanel3dAudio" style="display:none;">
+                    <div class="studio-grid-layout">
+                        <div class="studio-controls-col">
+                            <label class="studio-label">Creation Mode</label>
+                            <div class="studio-type-toggle">
+                                <button type="button" class="studio-pill-toggle active" id="toggleMode3D">🧊 3D Scene / Model</button>
+                                <button type="button" class="studio-pill-toggle" id="toggleModeAudio">🔊 Sci-Fi Audio & Synth</button>
+                            </div>
+
+                            <!-- 3D Controls -->
+                            <div id="studio3DControls">
+                                <label class="studio-label">3D Procedural Asset / Scene</label>
+                                <div class="studio-styles-grid" id="studio3dAssetGrid">
+                                    <button type="button" class="studio-style-chip active" data-asset="robot">🤖 NIVORA Cyber Robot</button>
+                                    <button type="button" class="studio-style-chip" data-asset="crystal">💎 Quantum Crystal Core</button>
+                                    <button type="button" class="studio-style-chip" data-asset="city">🏙️ Cyberpunk Grid Matrix</button>
+                                    <button type="button" class="studio-style-chip" data-asset="sphere">🌐 Holographic Geospatial Sphere</button>
+                                    <button type="button" class="studio-style-chip" data-asset="dna">🧬 Double Helix DNA Structure</button>
+                                </div>
+
+                                <div class="studio-form-row" style="margin-top:10px;">
+                                    <button type="button" class="studio-pill-toggle" id="studioToggleWireframe">Wireframe: OFF</button>
+                                    <button type="button" class="studio-pill-toggle" id="studioToggleAutoRotate">Auto-Rotate: ON</button>
+                                </div>
+
+                                <button type="button" class="studio-primary-action-btn" id="studioRender3DBtn" style="margin-top:12px;">
+                                    <span>🧊 Render Interactive 3D Model</span>
+                                </button>
+                            </div>
+
+                            <!-- Audio Controls -->
+                            <div id="studioAudioControls" style="display:none;">
+                                <label class="studio-label">Synthesized Sound Effects & Ambient Audio</label>
+                                <div class="studio-styles-grid" id="studioAudioPresetsGrid">
+                                    <button type="button" class="studio-style-chip active" data-sound="laser">⚡ Laser Blast / Blaster</button>
+                                    <button type="button" class="studio-style-chip" data-sound="ambient">🌌 Sci-Fi Synth Pad (Ambient)</button>
+                                    <button type="button" class="studio-style-chip" data-sound="chime">✨ Futuristic AI Chime</button>
+                                    <button type="button" class="studio-style-chip" data-sound="warp">🚀 Hyperdrive Warp Pulse</button>
+                                    <button type="button" class="studio-style-chip" data-sound="sonar">📡 Deep Sonar Ping</button>
+                                </div>
+
+                                <button type="button" class="studio-primary-action-btn" id="studioPlaySoundBtn" style="margin-top:12px;">
+                                    <span>🔊 Generate & Synthesize Sound</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="studio-preview-col">
+                            <div class="studio-preview-card" id="studio3dAudioPreviewCard">
+                                <!-- 3D Canvas Stage -->
+                                <div class="studio-3d-stage" id="studio3DCanvasWrap">
+                                    <canvas id="studioThreeCanvas"></canvas>
+                                    <div class="studio-3d-instructions">Drag to orbit • Scroll to zoom • Right-click to pan</div>
+                                </div>
+                                <!-- Audio Waveform Stage -->
+                                <div class="studio-audio-stage" id="studioAudioStage" style="display:none;">
+                                    <div class="audio-waveform-container" id="audioWaveformVisualizer">
+                                        <canvas id="waveformCanvas" width="450" height="120"></canvas>
+                                    </div>
+                                    <div class="audio-player-controls">
+                                        <button type="button" class="studio-play-btn" id="audioStagePlayBtn">▶ Play</button>
+                                        <span id="audioPlayingSoundTitle">Sci-Fi Synth Audio</span>
+                                        <button type="button" class="studio-action-pill" id="audioDownloadWavBtn">⬇ Download .WAV</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 9. QR CODE STUDIO PANEL -->
+                <div class="studio-panel" id="studioPanelQr" style="display:none;">
+                    <div class="studio-grid-layout">
+                        <div class="studio-controls-col">
+                            <label class="studio-label">QR Code Type</label>
+                            <div class="studio-styles-grid" id="studioQrTypesGrid">
+                                <button type="button" class="studio-style-chip active" data-qr="url">🔗 Web URL</button>
+                                <button type="button" class="studio-style-chip" data-qr="text">📝 Plain Text</button>
+                                <button type="button" class="studio-style-chip" data-qr="wifi">📶 WiFi Network</button>
+                                <button type="button" class="studio-style-chip" data-qr="vcard">👤 Contact / vCard</button>
+                                <button type="button" class="studio-style-chip" data-qr="crypto">🪙 Crypto Address</button>
+                            </div>
+
+                            <div id="qrInputFieldsWrap">
+                                <label class="studio-label" id="qrPayloadLabel">Target URL / Text</label>
+                                <input type="text" id="studioQrPayloadInput" class="studio-input" value="https://nivora.org" placeholder="https://...">
+                            </div>
+
+                            <div class="studio-form-row" style="margin-top:10px;">
+                                <div class="studio-field">
+                                    <label class="studio-label">Foreground Color</label>
+                                    <input type="color" id="studioQrFgColor" value="#0d0e15" class="studio-color-picker">
+                                </div>
+                                <div class="studio-field">
+                                    <label class="studio-label">Background Color</label>
+                                    <input type="color" id="studioQrBgColor" value="#ffffff" class="studio-color-picker">
+                                </div>
+                            </div>
+
+                            <button type="button" class="studio-primary-action-btn" id="studioGenerateQrBtn" style="margin-top:14px;">
+                                <span>📱 Generate High-Res QR Code</span>
+                            </button>
+                        </div>
+
+                        <div class="studio-preview-col">
+                            <div class="studio-preview-card" id="studioQrPreviewCard">
+                                <div class="studio-qr-stage" id="studioQrStage">
+                                    <div class="studio-qr-frame">
+                                        <img id="studioQrResultImg" alt="Generated QR Code" src="">
+                                    </div>
+                                    <div class="studio-result-actions" style="margin-top:14px;">
+                                        <a href="#" download="nivora-qr-code.png" id="studioDownloadQrPngBtn" class="studio-action-pill primary">⬇ Download PNG</a>
+                                        <button type="button" class="studio-action-pill" id="studioDownloadQrSvgBtn">⬇ Download SVG</button>
+                                        <button type="button" class="studio-action-pill" id="studioSendQrToChatBtn">💬 Send to Chat</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 10. CREATIONS GALLERY PANEL -->
+                <div class="studio-panel" id="studioPanelGallery" style="display:none;">
+                    <div class="studio-gallery-header">
+                        <h4>Recent Generated Creations</h4>
+                        <div class="studio-gallery-filters">
+                            <button type="button" class="studio-filter-chip active" data-filter="all">All</button>
+                            <button type="button" class="studio-filter-chip" data-filter="images">Images</button>
+                            <button type="button" class="studio-filter-chip" data-filter="docs">Documents</button>
+                            <button type="button" class="studio-filter-chip" data-filter="diagrams">Diagrams</button>
+                        </div>
+                    </div>
+                    <div class="studio-gallery-grid" id="studioGalleryGrid">
+                        <div class="studio-empty-state">
+                            <span class="studio-empty-icon">📁</span>
+                            <h4>No saved creations in this session yet</h4>
+                            <p>Generate images, logos, decks, or QR codes to populate your gallery.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <!-- Hidden Avatar Input -->
     <input type="file" id="profileAvatarInput" style="display:none;" accept="image/png,image/jpeg,image/webp,image/gif">
 
     <!-- Firebase Authentication & Application Scripts -->
     <script type="module" src="/src/firebaseAuth.ts"></script>
+    <script src="/robot-eye-tracker.js" defer></script>
+    <script src="/robot-controller.js" defer></script>
     <script src="/app.js" defer></script>
 </body>
 </html>

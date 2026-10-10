@@ -1,0 +1,643 @@
+/* =========================================================
+   GHOST MODE — RED & BLACK PREMIUM GLASSMORPHISM THEME
+   File: ghost-theme.css
+   
+   Cyber-futuristic aesthetic with near-black translucent glass,
+   deep red & crimson accents, subtle red neon edge lighting,
+   red glowing message bubbles, glowing crimson inputs & buttons.
+   Conditionally activated when [data-theme="ghost"].
+========================================================= */
+
+/* Root & Body Canvas */
+[data-theme="ghost"],
+[data-theme="ghost"] body {
+    background: #050508 radial-gradient(ellipse at 50% 0%, rgba(138, 16, 28, 0.28) 0%, rgba(26, 6, 10, 0.15) 45%, #050508 85%) !important;
+    color: #f8fafc !important;
+}
+
+[data-theme="ghost"] .app {
+    background: transparent !important;
+    position: relative;
+}
+
+/* Subtle Red Neon Ambient Edge Lighting */
+[data-theme="ghost"] .app::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 380px;
+    background: radial-gradient(circle at 50% -40px, rgba(220, 38, 38, 0.12) 0%, rgba(185, 28, 28, 0.04) 50%, transparent 80%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+[data-theme="ghost"] .app::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle at 100% 100%, rgba(185, 28, 28, 0.07) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* =========================================================
+   HEADER: Black Glass Header with Red Accent Line & Glow
+========================================================= */
+[data-theme="ghost"] .top-bar {
+    background: rgba(8, 7, 10, 0.75) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border-bottom: 1px solid rgba(220, 38, 38, 0.25) !important;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.7), 0 1px 12px rgba(220, 38, 38, 0.12) !important;
+    z-index: 10;
+}
+
+[data-theme="ghost"] .top-brand-text h2 {
+    color: #ffffff !important;
+}
+
+[data-theme="ghost"] .top-brand-text span {
+    color: #b8a6a6 !important;
+}
+
+[data-theme="ghost"] .provider-badge {
+    background: rgba(185, 28, 28, 0.12) !important;
+    border: 1px solid rgba(220, 38, 38, 0.28) !important;
+    color: #fca5a5 !important;
+    box-shadow: 0 0 10px rgba(220, 38, 38, 0.08) !important;
+}
+
+[data-theme="ghost"] .header-action-btn {
+    background: rgba(16, 12, 16, 0.65) !important;
+    border: 1px solid rgba(220, 38, 38, 0.2) !important;
+    color: #f1f5f9 !important;
+}
+
+[data-theme="ghost"] .header-action-btn:hover {
+    background: rgba(185, 28, 28, 0.22) !important;
+    border-color: rgba(239, 68, 68, 0.5) !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 14px rgba(220, 38, 38, 0.25) !important;
+}
+
+/* =========================================================
+   SIDEBAR: Black Translucent Glass with Red Glow
+========================================================= */
+[data-theme="ghost"] .sidebar {
+    background: rgba(8, 7, 10, 0.8) !important;
+    backdrop-filter: blur(24px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+    border-right: 1px solid rgba(220, 38, 38, 0.2) !important;
+    box-shadow: 4px 0 32px rgba(0, 0, 0, 0.7), inset -1px 0 0 rgba(220, 38, 38, 0.1) !important;
+}
+
+[data-theme="ghost"] .sidebar-title {
+    color: #f87171 !important;
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.35) !important;
+}
+
+[data-theme="ghost"] .new-chat {
+    background: rgba(185, 28, 28, 0.12) !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+    border: 1px solid rgba(220, 38, 38, 0.28) !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 14px rgba(220, 38, 38, 0.15) !important;
+    transform: translateZ(0) scale(1);
+    transition: transform 0.22s cubic-bezier(0.2, 0, 0, 1),
+                background 0.2s ease,
+                border-color 0.2s ease,
+                box-shadow 0.22s cubic-bezier(0.2, 0, 0, 1) !important;
+}
+
+[data-theme="ghost"] .new-chat:hover {
+    background: rgba(220, 38, 38, 0.26) !important;
+    border-color: rgba(239, 68, 68, 0.75) !important;
+    color: #ffffff !important;
+    transform: translateY(-1px) scale(1.018) !important;
+    box-shadow: 0 0 24px rgba(239, 68, 68, 0.45), 0 4px 14px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="ghost"] .new-chat:active {
+    transform: scale(0.99) !important;
+}
+
+[data-theme="ghost"] .sidebar-search button {
+    background: rgba(18, 12, 16, 0.5) !important;
+    border: 1px solid rgba(220, 38, 38, 0.16) !important;
+    color: #d1d5db !important;
+    transform: translateZ(0) scale(1);
+    transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1),
+                background 0.2s ease,
+                border-color 0.2s ease,
+                box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
+}
+
+[data-theme="ghost"] .sidebar-search button:hover {
+    background: rgba(185, 28, 28, 0.22) !important;
+    border-color: rgba(239, 68, 68, 0.55) !important;
+    color: #ffffff !important;
+    transform: translateY(-1px) scale(1.015) !important;
+    box-shadow: 0 0 16px rgba(220, 38, 38, 0.35), 0 3px 12px rgba(0, 0, 0, 0.45) !important;
+}
+
+[data-theme="ghost"] .sidebar-option {
+    color: #d1d5db !important;
+    transform: translateZ(0);
+    transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1),
+                background 0.2s ease,
+                border-color 0.2s ease,
+                color 0.2s ease,
+                box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
+}
+
+[data-theme="ghost"] .sidebar-option:hover {
+    background: rgba(185, 28, 28, 0.2) !important;
+    border: 1px solid rgba(239, 68, 68, 0.35) !important;
+    color: #ffffff !important;
+    transform: translateX(3px) scale(1.015) !important;
+    box-shadow: 0 0 16px rgba(220, 38, 38, 0.3), inset 0 0 10px rgba(185, 28, 28, 0.12) !important;
+}
+
+[data-theme="ghost"] .sidebar-close {
+    transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+[data-theme="ghost"] .sidebar-close:hover {
+    background: rgba(220, 38, 38, 0.22) !important;
+    color: #fca5a5 !important;
+    transform: scale(1.08) !important;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.45) !important;
+}
+
+/* Sidebar Chat Items: Smooth hover scale & red-glow shadow */
+[data-theme="ghost"] .chat-item {
+    background: rgba(14, 10, 14, 0.6) !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+    border: 1px solid rgba(220, 38, 38, 0.15) !important;
+    color: #f1f5f9 !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4) !important;
+    transform: translateZ(0) scale(1);
+    transition: transform 0.22s cubic-bezier(0.2, 0, 0, 1),
+                background 0.2s ease,
+                border-color 0.2s ease,
+                box-shadow 0.22s cubic-bezier(0.2, 0, 0, 1) !important;
+}
+
+[data-theme="ghost"] .chat-item:hover {
+    background: rgba(36, 16, 22, 0.82) !important;
+    border-color: rgba(239, 68, 68, 0.55) !important;
+    transform: translateY(-1px) scale(1.018) !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), 0 0 18px rgba(220, 38, 38, 0.4), inset 0 0 8px rgba(220, 38, 38, 0.12) !important;
+    color: #ffffff !important;
+}
+
+/* Selected item: subtle red background + red neon glow + active scale */
+[data-theme="ghost"] .chat-item.active {
+    background: rgba(185, 28, 28, 0.24) !important;
+    border-color: rgba(239, 68, 68, 0.65) !important;
+    box-shadow: 0 0 18px rgba(220, 38, 38, 0.35), inset 0 0 12px rgba(185, 28, 28, 0.15) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="ghost"] .chat-item.active:hover {
+    transform: translateY(-1px) scale(1.02) !important;
+    border-color: rgba(255, 60, 70, 0.85) !important;
+    box-shadow: 0 6px 24px rgba(220, 38, 38, 0.55), 0 0 24px rgba(239, 68, 68, 0.48), inset 0 0 14px rgba(185, 28, 28, 0.22) !important;
+}
+
+/* =========================================================
+   CHAT UI & MESSAGES: Red Outer Glow & Glass Cards
+========================================================= */
+[data-theme="ghost"] .chat-area {
+    background: transparent !important;
+}
+
+/* User Messages: Dark Red Gradient Glass Cards with soft red outer glow */
+[data-theme="ghost"] .user-message .message-content {
+    background: linear-gradient(135deg, rgba(140, 16, 26, 0.92) 0%, rgba(185, 28, 28, 0.88) 100%) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(252, 165, 165, 0.32) !important;
+    box-shadow: 0 8px 25px rgba(185, 28, 28, 0.38), 0 0 16px rgba(220, 38, 38, 0.22) !important;
+    color: #ffffff !important;
+}
+
+/* NIVORA Messages: Black Translucent Glass Cards with Subtle Red Border */
+[data-theme="ghost"] .ai-message .message-content {
+    background: rgba(10, 8, 12, 0.76) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 1px solid rgba(220, 38, 38, 0.25) !important;
+    color: #f8fafc !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), 0 0 16px rgba(220, 38, 38, 0.1), inset 0 1px 0 rgba(248, 113, 113, 0.12) !important;
+}
+
+[data-theme="ghost"] .ai-message .message-content:hover {
+    border-color: rgba(239, 68, 68, 0.42) !important;
+    box-shadow: 0 12px 38px rgba(0, 0, 0, 0.8), 0 0 24px rgba(220, 38, 38, 0.2), inset 0 1px 0 rgba(248, 113, 113, 0.2) !important;
+}
+
+[data-theme="ghost"] .ai-message .message-content p,
+[data-theme="ghost"] .ai-message .message-content li,
+[data-theme="ghost"] .ai-message .message-content span:not(.theme-checkmark),
+[data-theme="ghost"] .ai-message .message-content td,
+[data-theme="ghost"] .ai-message .message-content th {
+    color: #f1f5f9 !important;
+}
+
+[data-theme="ghost"] .ai-message .message-content h1,
+[data-theme="ghost"] .ai-message .message-content h2,
+[data-theme="ghost"] .ai-message .message-content h3,
+[data-theme="ghost"] .ai-message .message-content h4,
+[data-theme="ghost"] .ai-message .message-content strong {
+    color: #ffffff !important;
+}
+
+[data-theme="ghost"] .ai-message .message-content a {
+    color: #f87171 !important;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+[data-theme="ghost"] .ai-message .message-content a:hover {
+    color: #fca5a5 !important;
+}
+
+[data-theme="ghost"] .ai-message .message-content code:not(pre code) {
+    background: rgba(185, 28, 28, 0.15) !important;
+    color: #fca5a5 !important;
+    border: 1px solid rgba(220, 38, 38, 0.25) !important;
+}
+
+[data-theme="ghost"] .ai-message .message-content pre {
+    background: rgba(6, 5, 8, 0.92) !important;
+    border: 1px solid rgba(220, 38, 38, 0.22) !important;
+    color: #fecaca !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="ghost"] .ai-message .message-content blockquote {
+    border-left-color: #dc2626 !important;
+    background: rgba(185, 28, 28, 0.08) !important;
+    color: #e2e8f0 !important;
+}
+
+[data-theme="ghost"] .ai-message .message-content table {
+    border-color: rgba(220, 38, 38, 0.2) !important;
+}
+
+[data-theme="ghost"] .ai-message .message-content th {
+    background: rgba(185, 28, 28, 0.16) !important;
+    border-color: rgba(220, 38, 38, 0.22) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="ghost"] .ai-message .message-content td {
+    border-color: rgba(220, 38, 38, 0.15) !important;
+}
+
+/* Welcome Card Typography */
+[data-theme="ghost"] .welcome h1,
+[data-theme="ghost"] .welcome h2 {
+    color: #ffffff !important;
+    text-shadow: 0 0 25px rgba(220, 38, 38, 0.25) !important;
+}
+
+[data-theme="ghost"] .welcome p {
+    color: #b8a6a6 !important;
+}
+
+[data-theme="ghost"] .shortcut-chip {
+    background: rgba(18, 12, 16, 0.65) !important;
+    border: 1px solid rgba(220, 38, 38, 0.22) !important;
+    color: #fecaca !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="ghost"] .shortcut-chip:hover {
+    background: rgba(185, 28, 28, 0.25) !important;
+    border-color: rgba(239, 68, 68, 0.6) !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 16px rgba(239, 68, 68, 0.3) !important;
+}
+
+/* Beacon & Typing indicator with red neon */
+[data-theme="ghost"] .beacon-core {
+    background: #ef4444 !important;
+    box-shadow: 0 0 12px #ef4444 !important;
+}
+
+[data-theme="ghost"] .thinking-pill,
+[data-theme="ghost"] .typing-bubble {
+    background: rgba(14, 10, 14, 0.78) !important;
+    border: 1px solid rgba(220, 38, 38, 0.35) !important;
+    color: #fecaca !important;
+    box-shadow: 0 2px 14px rgba(220, 38, 38, 0.2) !important;
+}
+
+/* =========================================================
+   INPUT BOX: Black Glass with Red Border & Red Focus Glow
+========================================================= */
+@keyframes ghostInputPulse {
+    0% {
+        border-color: rgba(220, 38, 38, 0.6);
+        box-shadow: 0 0 20px rgba(220, 38, 38, 0.4),
+                    0 0 35px rgba(185, 28, 28, 0.25),
+                    0 12px 40px rgba(0, 0, 0, 0.8),
+                    inset 0 1px 0 rgba(254, 202, 202, 0.22);
+    }
+    50% {
+        border-color: rgba(239, 68, 68, 0.9);
+        box-shadow: 0 0 28px rgba(239, 68, 68, 0.6),
+                    0 0 48px rgba(220, 38, 38, 0.38),
+                    0 14px 44px rgba(0, 0, 0, 0.85),
+                    inset 0 1px 0 rgba(254, 202, 202, 0.35);
+    }
+    100% {
+        border-color: rgba(255, 45, 55, 1);
+        box-shadow: 0 0 36px rgba(255, 45, 55, 0.75),
+                    0 0 60px rgba(220, 38, 38, 0.45),
+                    0 16px 48px rgba(0, 0, 0, 0.9),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+}
+
+[data-theme="ghost"] .input-bar,
+[data-theme="ghost"] .input-container,
+[data-theme="ghost"] .input-box {
+    background: rgba(10, 8, 12, 0.78) !important;
+    backdrop-filter: blur(24px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+    border: 1px solid rgba(220, 38, 38, 0.26) !important;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7), 0 0 18px rgba(220, 38, 38, 0.1), inset 0 1px 0 rgba(248, 113, 113, 0.12) !important;
+    transition: border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                background 0.3s ease !important;
+}
+
+/* Intensified outer glow & smooth pulsating red border transition when active/focused */
+[data-theme="ghost"] .input-bar:focus-within,
+[data-theme="ghost"] .input-container:focus-within,
+[data-theme="ghost"] .input-box:focus-within,
+[data-theme="ghost"] .input-bar:active,
+[data-theme="ghost"] .input-container:active,
+[data-theme="ghost"] .input-box:active {
+    animation: ghostInputPulse 2.4s infinite alternate ease-in-out !important;
+}
+
+[data-theme="ghost"] .chat-input,
+[data-theme="ghost"] .input-bar textarea,
+[data-theme="ghost"] .input-box input,
+[data-theme="ghost"] .input-box textarea,
+[data-theme="ghost"] #messageInput {
+    color: #ffffff !important;
+    background: transparent !important;
+    caret-color: #ef4444 !important;
+    outline: none !important;
+    transition: caret-color 0.2s ease, color 0.2s ease !important;
+}
+
+[data-theme="ghost"] .chat-input:focus,
+[data-theme="ghost"] .input-bar textarea:focus,
+[data-theme="ghost"] .input-box input:focus,
+[data-theme="ghost"] .input-box textarea:focus,
+[data-theme="ghost"] #messageInput:focus,
+[data-theme="ghost"] .chat-input:active,
+[data-theme="ghost"] #messageInput:active {
+    outline: none !important;
+    color: #ffffff !important;
+}
+
+[data-theme="ghost"] .chat-input::placeholder,
+[data-theme="ghost"] .input-bar textarea::placeholder,
+[data-theme="ghost"] .input-box input::placeholder,
+[data-theme="ghost"] #messageInput::placeholder {
+    color: #a89f9f !important;
+}
+
+/* SEND BUTTON: Crimson/Red Glowing Button */
+[data-theme="ghost"] .send-button,
+[data-theme="ghost"] #sendBtn,
+[data-theme="ghost"] .send-button.active {
+    background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(254, 202, 202, 0.35) !important;
+    box-shadow: 0 0 18px rgba(220, 38, 38, 0.55), 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="ghost"] .send-button:hover,
+[data-theme="ghost"] #sendBtn:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%) !important;
+    box-shadow: 0 0 25px rgba(239, 68, 68, 0.75), 0 4px 14px rgba(0, 0, 0, 0.5) !important;
+    transform: scale(1.05) !important;
+}
+
+[data-theme="ghost"] .send-button svg,
+[data-theme="ghost"] #sendBtn svg {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+}
+
+[data-theme="ghost"] .action-btn {
+    color: #d1d5db !important;
+}
+
+[data-theme="ghost"] .action-btn:hover {
+    color: #fca5a5 !important;
+    background: rgba(185, 28, 28, 0.18) !important;
+}
+
+/* =========================================================
+   SETTINGS PANEL: Black Translucent Glass with Red Accents
+========================================================= */
+[data-theme="ghost"] #settingsPanel {
+    background: rgba(10, 8, 12, 0.85) !important;
+    backdrop-filter: blur(28px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+    border: 1px solid rgba(220, 38, 38, 0.28) !important;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.85), 0 0 35px rgba(220, 38, 38, 0.16) !important;
+}
+
+[data-theme="ghost"] #settingsPanel .settings-header h3 {
+    color: #ffffff !important;
+}
+
+[data-theme="ghost"] #settingsPanel .settings-header p {
+    color: #b8a6a6 !important;
+}
+
+[data-theme="ghost"] #closeSettings {
+    background: rgba(185, 28, 28, 0.16) !important;
+    border: 1px solid rgba(220, 38, 38, 0.25) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="ghost"] #closeSettings:hover {
+    background: rgba(220, 38, 38, 0.3) !important;
+}
+
+[data-theme="ghost"] .settings-section-title {
+    color: #f87171 !important;
+}
+
+[data-theme="ghost"] .settings-item {
+    background: rgba(22, 14, 18, 0.55) !important;
+    border: 1px solid rgba(220, 38, 38, 0.18) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="ghost"] .settings-item:hover {
+    background: rgba(35, 18, 24, 0.75) !important;
+    border-color: rgba(239, 68, 68, 0.42) !important;
+    box-shadow: 0 4px 16px rgba(220, 38, 38, 0.2) !important;
+}
+
+[data-theme="ghost"] .settings-item-icon {
+    background: rgba(185, 28, 28, 0.2) !important;
+    color: #fca5a5 !important;
+}
+
+[data-theme="ghost"] .settings-item-text strong {
+    color: #ffffff !important;
+}
+
+[data-theme="ghost"] .settings-item-text span {
+    color: #b8a6a6 !important;
+}
+
+[data-theme="ghost"] .settings-shortcuts-card {
+    background: rgba(16, 10, 14, 0.6) !important;
+    border: 1px solid rgba(220, 38, 38, 0.2) !important;
+}
+
+[data-theme="ghost"] .shortcut-row {
+    color: #e2e8f0 !important;
+    border-bottom: 1px solid rgba(220, 38, 38, 0.12) !important;
+}
+
+[data-theme="ghost"] .shortcut-desc {
+    color: #ffffff !important;
+}
+
+[data-theme="ghost"] .shortcut-key-combo {
+    background: rgba(185, 28, 28, 0.18) !important;
+    border: 1px solid rgba(220, 38, 38, 0.3) !important;
+    color: #fca5a5 !important;
+}
+
+[data-theme="ghost"] #settingsPanel .nivora-setting-detail {
+    background: rgba(14, 10, 14, 0.8) !important;
+    border-color: rgba(220, 38, 38, 0.25) !important;
+}
+
+[data-theme="ghost"] .nivora-detail-title {
+    color: #ffffff !important;
+}
+
+[data-theme="ghost"] .nivora-detail-text {
+    color: #b8a6a6 !important;
+}
+
+[data-theme="ghost"] .nivora-detail-btn {
+    background: rgba(25, 15, 20, 0.7) !important;
+    border: 1px solid rgba(220, 38, 38, 0.25) !important;
+    color: #f8fafc !important;
+}
+
+[data-theme="ghost"] .nivora-detail-btn:hover {
+    background: rgba(185, 28, 28, 0.3) !important;
+    border-color: rgba(239, 68, 68, 0.5) !important;
+    color: #ffffff !important;
+}
+
+/* Theme Option Rows in Ghost Mode */
+[data-theme="ghost"] .theme-option-row {
+    background: rgba(20, 12, 16, 0.55) !important;
+    border: 1px solid rgba(220, 38, 38, 0.18) !important;
+}
+
+[data-theme="ghost"] .theme-option-row:hover {
+    background: rgba(185, 28, 28, 0.2) !important;
+    border-color: rgba(239, 68, 68, 0.45) !important;
+}
+
+[data-theme="ghost"] .theme-option-row.active {
+    background: rgba(185, 28, 28, 0.32) !important;
+    border-color: rgba(239, 68, 68, 0.75) !important;
+    box-shadow: 0 0 22px rgba(220, 38, 38, 0.4) !important;
+}
+
+[data-theme="ghost"] .theme-option-row.active .theme-checkmark {
+    background: rgba(239, 68, 68, 0.25) !important;
+    border-color: #ef4444 !important;
+    color: #ef4444 !important;
+}
+
+/* =========================================================
+   NIVORA ROBOT ASSISTANT — GHOST MODE CRIMSON STYLING
+========================================================= */
+[data-theme="ghost"] .nivora-peek-robot {
+    filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.75)) drop-shadow(0 0 10px rgba(220, 38, 38, 0.3)) !important;
+}
+
+[data-theme="ghost"] .nivora-peek-robot:hover {
+    filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 16px rgba(239, 68, 68, 0.65)) !important;
+}
+
+[data-theme="ghost"] .nivora-peek-robot.robot-active {
+    filter: drop-shadow(0 0 22px rgba(239, 68, 68, 0.9)) !important;
+}
+
+[data-theme="ghost"] .nivora-peek-robot .robot-eye,
+[data-theme="ghost"] .nivora-peek-robot .robot-eye-happy {
+    fill: #ef4444 !important;
+    stroke: #ef4444 !important;
+    filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.95)) !important;
+}
+
+[data-theme="ghost"] .nivora-peek-robot .robot-antenna-tip {
+    fill: #ef4444 !important;
+    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.95)) !important;
+}
+
+[data-theme="ghost"] .nivora-peek-robot .robot-ear-accent,
+[data-theme="ghost"] .nivora-peek-robot .robot-chest-accent {
+    fill: #dc2626 !important;
+    stroke: #dc2626 !important;
+}
+
+[data-theme="ghost"] .nivora-peek-robot .robot-sparkle-1,
+[data-theme="ghost"] .nivora-peek-robot .robot-sparkle-2,
+[data-theme="ghost"] .nivora-peek-robot .robot-sparkle-3 {
+    fill: #fca5a5 !important;
+    filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.85)) !important;
+}
+
+[data-theme="ghost"] .nivora-peek-robot:focus-visible {
+    outline-color: #ef4444 !important;
+}
+
+[data-theme="ghost"] .nivora-peek-robot .robot-chest-emblem,
+[data-theme="ghost"] .nivora-peek-robot .robot-mouth {
+    stroke: #ef4444 !important;
+}
+
+[data-theme="ghost"] .nivora-robot-speech {
+    background: rgba(14, 8, 12, 0.94) !important;
+    border: 1px solid rgba(220, 38, 38, 0.5) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8), 0 0 16px rgba(220, 38, 38, 0.35) !important;
+    color: #fca5a5 !important;
+}
+
+[data-theme="ghost"] .nivora-robot-speech::after {
+    border-color: rgba(14, 8, 12, 0.94) transparent transparent transparent !important;
+}
+
+

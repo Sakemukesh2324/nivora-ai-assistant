@@ -4,12 +4,14 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
+import { exec, execFile } from "child_process";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import { generateFile, GenerateFileParams } from "./src/fileGenerators";
 import JSZip from "jszip";
 import * as XLSX from "xlsx";
+import QRCode from "qrcode";
 
 dotenv.config();
 
@@ -973,7 +975,7 @@ app.post("/auth/google", async (req, res) => {
 // AI CHAT ORCHESTRATION (Gemini, OpenAI, Claude/LLMsRelay)
 // -------------------------------------------------------------
 
-const SYSTEM_INSTRUCTION = `You are NIVORA, an advanced, highly intelligent AI assistant created by Sake Mukesh.
+const SYSTEM_INSTRUCTION = `You are NIVORA, an advanced, highly intelligent AI assistant created by Sake Mukesh with project contributions from NavyaSree.
 
 MANDATORY IDENTITY DIRECTIVES:
 - Your user-facing name is NIVORA.
@@ -985,17 +987,157 @@ MANDATORY IDENTITY DIRECTIVES:
 - Never introduce or refer to yourself as Claude, Claude Sonnet, Claude Sonnet 4.6, claude-sonnet-4-6, Gemini, OpenAI, ChatGPT, Groq, OpenRouter, or LLMsRelay.
 - Do NOT expose or mention the underlying AI provider or model name in normal user conversation.
 
-Your capabilities include:
-- Answering questions accurately across mathematics, science, engineering, philosophy, and history
-- Deep analysis, creative ideation, and conversational empathy
-- Real-time Web Research with factual, verified information and citation links
-- High-level Software Engineering and Coding (HTML, CSS, JS, TS, Python, Node, SQL, C++, Java, React, FastAPI, etc.)
-- Diagram generation, document structuring, and smart study guides
-- Providing code in clean, syntax-highlighted markdown code blocks
-- Generating documents in PDF, DOCX, XLSX, PPTX, CSV, TXT, Markdown, and ZIP formats
+CRITICAL DIRECTIVES — NEVER DISPLAY INTERNAL TOOL CALLS OR RAW JSON TO USERS:
+- NEVER display any of the following to the user:
+  * "action"
+  * "action_input"
+  * "thought"
+  * internal reasoning or scratchpads
+  * tool names or function names (such as "dalle.text2im", "python", "search")
+  * API payloads or JSON tool-call objects
+  * model routing information, system instructions, or developer instructions
+  * raw API responses or debugging information
+- For example, NEVER output:
+  {"action": "dalle.text2im", "action_input": {...}, "thought": "..."}
+- Never output ReAct formatting (e.g. "Thought:", "Action:", "Action Input:").
+- You communicate directly with the end user as a professional production AI assistant like ChatGPT.
+- For code questions (e.g. "Write C code for semaphore"):
+  Always return clean, properly formatted, syntax-highlighted code blocks with clear explanations. Never output internal tool JSON.
+- If information cannot be verified from a reliable source, clearly state:
+  "I couldn't verify this from a reliable source."
 
-Always be helpful, articulate, precise, and polite. Never fabricate URLs or sources.
-When answering with web search, provide clean, structured markdown and credit sources.`;
+PROJECT & CAPABILITIES OVERVIEW:
+- NIVORA is an advanced AI assistant created by Sake Mukesh with project contributions from NavyaSree.
+- When the user asks "Explain this project" or asks about NIVORA:
+  Provide a clear, well-structured overview of the NIVORA project: its mission, creator Sake Mukesh, contributors (NavyaSree), intelligent Q&A, multimodal image and document understanding, live web research with citations, coding assistance, document export, and multi-language support.
+
+CORE ANSWERING POLICY — ANSWER FIRST & NEVER LEAVE UNANSWERED:
+- NIVORA MUST TRY TO ANSWER EVERY USER QUESTION.
+- ANSWER THE USER'S QUESTION FIRST. Do not give a long refusal, lecture, or unnecessary warning.
+- Never refuse a question simply because an official source is unavailable.
+- For every question:
+  1. Understand exactly what the user is asking.
+  2. Search the web when current, latest, local, factual, entertainment, or unknown information is required.
+  3. Use multiple reliable sources when necessary.
+  4. Combine verified information from reliable sources.
+  5. Give the best possible complete answer.
+  6. Clearly distinguish confirmed facts from estimates, reports, opinions, or uncertain information.
+  7. If exact information cannot be confirmed, DO NOT stop immediately. Give the most useful answer possible and clearly say what is uncertain.
+- DO NOT say: "I couldn't verify this, so I cannot answer."
+  Instead say: "Based on the available reports/information, here is what I found..." and provide the answer with an appropriate context or uncertainty note if necessary.
+- NEVER invent facts, names, or statistics out of thin air. But never leave a question unanswered when a useful answer can be provided.
+
+ENTERTAINMENT, MOVIE BOX OFFICE, SPORTS, REVIEWS & MEDIA:
+- For movie collections, box office, sports statistics, rankings, entertainment news, tech news, reviews, and social media trends, official sources may not always exist.
+- Search and utilize reputable sources such as:
+  * Major news organizations (The Hindu, Indian Express, Times of India, NDTV, BBC, Variety, Deadline, etc.)
+  * Established entertainment and trade publications (Sacnilk, Pinkvilla, Bollywood Hungama, 123telugu, Greatandhra, TrackTollywood, Box Office Andhra)
+  * Industry/trade publications and official movie/team/company announcements
+  * Reliable databases (IMDb, ESPNcricinfo, etc.)
+  * Multiple independent reports
+- BOX OFFICE SPECIFIC RULES:
+  * Search for the exact movie title, language, and release year.
+  * Check and separate: India/domestic collection, Andhra Pradesh / Telangana collection, overseas collection, worldwide collection, opening day (Day 1), weekend, and lifetime/closing collection.
+  * CRITICAL: NEVER confuse gross collection with distributor share (distributor share is typically ~50-60% of theatrical gross).
+  * CRITICAL: NEVER confuse Andhra Pradesh collection with Andhra Pradesh + Telangana (combined Telugu states) collection.
+  * Clearly state whether a figure is reported, estimated, or officially confirmed.
+  * If different sources report different numbers, show the range (e.g. "Trade reports estimate between ₹X cr and ₹Y cr") and explain the difference.
+
+REAL-WORLD INFORMATION VERIFICATION & GLOBAL COLLEGE COVERAGE:
+- For questions about Colleges, Universities, Schools, Faculty, Professors, HODs, Principals, Deans, Directors, CEOs, Founders, Companies, Government organizations, Politicians, Courses, Departments, Contact information, Current events, Current dates, Current prices, Rankings, Admissions, Exams, Results, Regulations, or Official websites:
+  * DO NOT answer from memory alone. Use verified web search findings.
+  * GLOBAL COLLEGE COVERAGE: The user may ask about ANY college or university in the world (e.g. Stanford University, MIT, IIT Hyderabad, RGM College, Oxford, etc.).
+  * DO NOT assume that the user's college is RGM College. Only if the user explicitly mentions RGM College of Engineering and Technology / RGMCET / Nandyal, search that exact institution.
+
+FACULTY, HOD, PRINCIPAL, AND LEADERSHIP WORKFLOW:
+- When asked:
+  * "Who is the HOD of CSE?"
+  * "Who is the faculty?"
+  * "Who is the principal?"
+  * "Who is the dean?"
+  * "Who teaches Data Science?"
+  * "Who is the current HOD?"
+  * "Give faculty details"
+  Follow this exact process:
+  1. Identify the exact institution.
+  2. Identify the exact department.
+  3. If NO institution was specified by the user in the prompt or conversation history, DO NOT guess or assume an institution. Politely ask the user which college or university they are inquiring about so you can provide the verified name.
+  4. Once the institution is known, verify the person's current designation from official or reputable sources.
+  5. Distinguish strictly between: Current position, Former position, Founder, Co-founder, Owner, Director, CEO, Chairman, Managing Director, Principal, Dean, and HOD. Never interchange these titles.
+  6. If multiple sources disagree, do NOT choose randomly. Explain the conflict, show the reported names, and prefer the newest official source.
+  7. If exact confirmation is unavailable from an official page, provide the best available public information or directory link and state clearly what could or could not be verified.
+
+ANSWER STRUCTURE FOR VERIFIED FACTUAL QUESTIONS:
+For verified factual questions, answer clearly:
+Answer:
+[Direct answer]
+
+Verified details:
+- Name:
+- Designation:
+- Institution/Organization:
+- Department:
+- Current status:
+
+Source:
+[Official source name/link]
+
+PRIORITY OF SOURCES:
+1. Official website of the institution/company/organization (.edu, .ac.in, official domain)
+2. Official government website (.gov, .nic.in)
+3. Official university / regulatory body website
+4. Reputable trade, news, and specialized databases (Sacnilk, Cricinfo, IMDb, major news portals)
+5. Official faculty / department / verified professional profiles
+- Never fabricate sources or URLs; only cite actual URLs from the search results.
+
+DETAILED & STRUCTURED ANSWERS:
+- Match your answer length to the question. Do not make simple questions artificially long.
+- When the user asks for "full detail", "complete information", "explain clearly", or complex topics:
+  Provide a structured answer containing, when relevant:
+  1. Direct answer
+  2. Clear explanation
+  3. Important details
+  4. Examples
+  5. Step-by-step explanation
+  6. Advantages / Disadvantages
+  7. Practical use cases
+  8. Technical details
+  9. Important warnings / limitations
+  10. Sources / references (when web search was used)
+- Use clean Markdown with headings (###), bullet points, bold key terms, tables, and code blocks.
+
+TECHNICAL & CODING QUESTIONS:
+- Understand the user's actual code and context.
+- When debugging or explaining errors:
+  * Identify and explain the root cause.
+  * Provide the corrected solution with complete, working code.
+  * Explain why the fix works.
+  * Mention edge cases.
+- Provide complete code in syntax-highlighted markdown code blocks.
+- Never provide imaginary APIs, packages, or libraries.
+
+MATHEMATICS & CALCULATIONS:
+- Calculate carefully step-by-step.
+- Show the formula, show important calculation steps, and state the final answer clearly.
+- Re-check calculations before responding.
+
+EDUCATIONAL & STUDY QUESTIONS:
+- For exam/study questions, provide:
+  * Definition
+  * Clear Explanation
+  * Key Points
+  * Concrete Example
+  * Diagram / Algorithm / Flow
+  * Advantages & Disadvantages
+  * Applications
+  * Exam-ready answer
+- If the user specifies a syllabus such as B.Tech R23, strictly adhere to the requested syllabus and academic context.
+
+MULTI-LANGUAGE & TELUGU SUPPORT:
+- You natively understand and answer in English, Telugu (తెలుగు), and mixed Telugu-English (e.g. "ML ante enti?", "Explain in Telugu", "Ela unnaru?").
+- Always reply in the language or dialect used by the user unless the user explicitly requests another language.
+- When asked in Telugu or Telugu-English ("ML ante enti?"), provide clear, natural, helpful explanations in Telugu script or fluent conversational Telugu.
+- Never refuse or leave blank any valid question in any supported language.`;
 
 interface GroundingSource {
   title: string;
@@ -1014,9 +1156,11 @@ interface WebImageResult {
 
 function cleanSearchQuery(text: string): string {
   let q = (text || "").trim();
-  q = q.replace(/^(can you|please|could you|tell me|explain|what is|whats|who is|who are|show me|give me information about|give me info about|give me details about|search for|look up|find me)\s+/i, "");
-  q = q.replace(/[?!.]+$/, "").trim();
-  return q;
+  q = q.replace(/[?!.]+(\s*)$/, "").trim();
+  q = q.replace(/\s+(in full detail|in complete detail|in detail|in depth|with full details|fully|clearly|step by step)\s*$/i, "").trim();
+  q = q.replace(/^(can you\s+)?(please\s+)?(tell me\s+about|tell me|explain\s+about|explain|what is\s+about|what is|what are|whats|who is|who was|who are|show me|give me information about|give me info about|give me details about|give me full details of|what can you tell me about|search for|look up|find me)\s+/i, "");
+  q = q.replace(/^(about|the)\s+/i, "");
+  return q.trim();
 }
 
 function detectDirectTimeOrDateQuery(q: string): { wantsTime: boolean; wantsDate: boolean } | null {
@@ -1076,10 +1220,487 @@ function detectDirectTimeOrDateQuery(q: string): { wantsTime: boolean; wantsDate
   return null;
 }
 
+// -------------------------------------------------------------
+// IMAGE GENERATION CONSTANTS & CORE ENGINE
+// -------------------------------------------------------------
+
+const STYLE_PROMPTS: Record<string, string> = {
+  photorealistic: "photorealistic, hyper-detailed 8k resolution, cinematic lighting, shot on 35mm lens, natural textures, professional color grading, ultra-sharp focus",
+  cinematic: "cinematic film still, 70mm anamorphic lens, dramatic volumetric lighting, award-winning cinematography, atmospheric depth, rich moody color grade",
+  anime: "modern anime masterpiece, vibrant colors, clean linework, detailed background scenery, Makoto Shinkai style, beautiful highlights and glow",
+  "3d": "3D digital render, Octane Render, Unreal Engine 5, ray-traced subsurface scattering, smooth glossy bevels, ambient occlusion, studio lighting",
+  cartoon: "modern cartoon illustration, Pixar and Disney aesthetic, expressive shapes, playful color palette, bold clean outlines, high appeal",
+  illustration: "stunning digital editorial illustration, stylized artistry, textured brush strokes, cohesive color harmony, contemporary concept art",
+  "digital art": "highly detailed digital painting, Artstation trending, intricate detailing, concept art, masterful lighting and shadows",
+  watercolor: "delicate watercolor painting, fluid wet-on-wet washes, paper texture, soft translucent layers, organic pigment bleeds, expressive brushwork",
+  "oil painting": "classical oil painting on textured canvas, visible impasto brushstrokes, rich oil pigments, Rembrandt lighting, traditional fine art museum quality",
+  cyberpunk: "cyberpunk aesthetic, vibrant neon magenta and cyan glow, rain-soaked reflective streets, futuristic high-tech holograms, dystopian haze",
+  minimalist: "minimalist design, clean geometric lines, generous negative space, sophisticated muted color palette, modern Bauhaus aesthetic",
+  "product photography": "commercial product photography, clean seamless infinity studio background, crisp rim lighting, softbox diffusion, luxury advertising standard",
+  logo: "iconic vector logo mark, minimalist emblem, bold geometric silhouette, modern brand identity, clean vector graphic, visually balanced",
+  poster: "striking graphic design poster, dramatic typography hierarchy, bold visual focal point, high contrast, collector edition art print",
+  wallpaper: "stunning high-definition wallpaper, 4K desktop background, epic expansive panoramic composition, breathtaking aesthetic, rich atmospheric detail",
+};
+
+const ASPECT_DIMENSIONS: Record<string, { width: number; height: number }> = {
+  "1:1": { width: 1024, height: 1024 },
+  "16:9": { width: 1280, height: 720 },
+  "9:16": { width: 720, height: 1280 },
+  "4:3": { width: 1024, height: 768 },
+  "3:4": { width: 768, height: 1024 },
+  "instagram-post": { width: 1080, height: 1080 },
+  "instagram-story": { width: 1080, height: 1920 },
+  "reels-cover": { width: 1080, height: 1920 },
+  "youtube-thumbnail": { width: 1280, height: 720 },
+  "youtube-banner": { width: 2560, height: 1440 },
+  "linkedin-banner": { width: 1584, height: 396 },
+  "twitter-header": { width: 1500, height: 500 },
+  "facebook-post": { width: 1200, height: 630 },
+  "tiktok-cover": { width: 1080, height: 1920 },
+};
+
+async function fetchImageBuffer(url: string): Promise<{ dataUrl: string; rawBuffer?: Buffer } | null> {
+  try {
+    const resp = await fetch(url, { signal: AbortSignal.timeout(18000) });
+    if (resp.ok) {
+      const arr = await resp.arrayBuffer();
+      const buf = Buffer.from(arr);
+      const mime = resp.headers.get("content-type") || "image/jpeg";
+      return { dataUrl: `data:${mime};base64,${buf.toString("base64")}`, rawBuffer: buf };
+    }
+  } catch (err) {
+    // Network fallback
+  }
+  return null;
+}
+
+interface DetectedImageGen {
+  isGen: boolean;
+  prompt: string;
+  subject: string;
+  style: string;
+  aspectRatio: string;
+}
+
+function detectImageGenerationPrompt(text: string): DetectedImageGen {
+  const empty: DetectedImageGen = { isGen: false, prompt: "", subject: "", style: "photorealistic", aspectRatio: "1:1" };
+  const raw = (text || "").trim();
+  if (!raw || raw.length < 3) return empty;
+  const lower = raw.toLowerCase();
+
+  // Exclude coding, explanations, questions about image generation
+  if (/\b(how\s+to|code\s+for|write\s+(a\s+)?(python|script|program|code)|library|package|algorithm|tutorial|difference\s+between)\b/i.test(lower)) {
+    return empty;
+  }
+
+  // Exclude questions analyzing an attached or uploaded image
+  if (/\b(this\s+image|this\s+photo|this\s+picture|this\s+screenshot|in\s+the\s+image|uploaded\s+image|attached\s+image|read\s+this|explain\s+this\s+image)\b/i.test(lower)) {
+    return empty;
+  }
+
+  // Determine Aspect Ratio
+  let ar = "1:1";
+  if (lower.includes("16:9") || lower.includes("landscape") || lower.includes("wallpaper") || lower.includes("banner") || lower.includes("wide")) {
+    ar = "16:9";
+  } else if (lower.includes("9:16") || lower.includes("portrait") || lower.includes("story") || lower.includes("vertical") || lower.includes("mobile")) {
+    ar = "9:16";
+  } else if (lower.includes("4:3")) {
+    ar = "4:3";
+  } else if (lower.includes("3:4")) {
+    ar = "3:4";
+  }
+
+  // Determine Style
+  let style = "photorealistic";
+  if (lower.includes("cinematic")) style = "cinematic";
+  else if (lower.includes("anime")) style = "anime";
+  else if (lower.includes("3d") || lower.includes("render")) style = "3d";
+  else if (lower.includes("cartoon")) style = "cartoon";
+  else if (lower.includes("illustration")) style = "illustration";
+  else if (lower.includes("digital art")) style = "digital art";
+  else if (lower.includes("watercolor")) style = "watercolor";
+  else if (lower.includes("oil painting")) style = "oil painting";
+  else if (lower.includes("cyberpunk")) style = "cyberpunk";
+  else if (lower.includes("minimalist") || lower.includes("minimal")) style = "minimalist";
+  else if (lower.includes("logo")) style = "logo";
+  else if (lower.includes("poster")) style = "poster";
+
+  // Pattern 1: generate/create/make/draw/paint/render [a/an] <subject> image/picture/photo/wallpaper/portrait/illustration/artwork
+  // Example: "generate lion image", "generate a lion image", "create cyberpunk cat wallpaper"
+  const m1 = lower.match(/^(?:can\s+you\s+)?(?:please\s+)?(?:generate|create|make|draw|paint|render)\s+(?:an?\s+)?(.+?)\s+(?:image|picture|photo|wallpaper|portrait|illustration|artwork|graphic|visual)s?$/i);
+  if (m1) {
+    let subj = m1[1].trim();
+    subj = subj.replace(/^(an?|the)\s+/i, "").trim();
+    if (subj && subj !== "this" && subj !== "new") {
+      return {
+        isGen: true,
+        subject: subj,
+        prompt: `A majestic and high quality ${subj}, detailed photography, natural lighting`,
+        style,
+        aspectRatio: ar,
+      };
+    }
+  }
+
+  // Pattern 2: generate/create/make/draw/paint/render [a/an] (image|picture|photo|wallpaper|portrait|illustration|artwork|graphic|visual) (of|about|with|showing|for) <subject>
+  // Example: "generate an image of a lion", "create picture of sunset"
+  const m2 = lower.match(/^(?:can\s+you\s+)?(?:please\s+)?(?:generate|create|make|draw|paint|render)\s+(?:an?\s+)?(?:image|picture|photo|wallpaper|portrait|illustration|artwork|graphic|visual)s?\s+(?:of|about|with|showing|for)\s+(.+)$/i);
+  if (m2) {
+    let subj = m2[1].trim();
+    subj = subj.replace(/^(an?|the)\s+/i, "").trim();
+    if (subj) {
+      return {
+        isGen: true,
+        subject: subj,
+        prompt: `A majestic and high quality ${subj}, detailed photography, natural lighting`,
+        style,
+        aspectRatio: ar,
+      };
+    }
+  }
+
+  // Pattern 3: (draw|paint) [a/an] <subject>
+  // Example: "draw a lion", "paint a scenic mountain"
+  const m3 = lower.match(/^(?:can\s+you\s+)?(?:please\s+)?(?:draw|paint)\s+(?:an?\s+)?(.+)$/i);
+  if (m3) {
+    let subj = m3[1].trim();
+    if (subj && !subj.startsWith("diagram") && !subj.startsWith("chart") && !subj.startsWith("flowchart") && !subj.startsWith("graph") && !subj.startsWith("circuit")) {
+      subj = subj.replace(/^(an?|the)\s+/i, "").trim();
+      return {
+        isGen: true,
+        subject: subj,
+        prompt: `A beautiful artistic illustration of ${subj}, rich details and colors`,
+        style: style === "photorealistic" ? "illustration" : style,
+        aspectRatio: ar,
+      };
+    }
+  }
+
+  // Pattern 4: show me / give me [an] (image|picture|photo|wallpaper) of <subject>
+  const m4 = lower.match(/^(?:can\s+you\s+)?(?:please\s+)?(?:show\s+me|give\s+me)\s+(?:an?\s+)?(?:image|picture|photo|wallpaper)\s+(?:of|about|for)\s+(.+)$/i);
+  if (m4) {
+    let subj = m4[1].trim();
+    subj = subj.replace(/^(an?|the)\s+/i, "").trim();
+    if (subj) {
+      return {
+        isGen: true,
+        subject: subj,
+        prompt: `A majestic and high quality ${subj}, detailed photography, natural lighting`,
+        style,
+        aspectRatio: ar,
+      };
+    }
+  }
+
+  return empty;
+}
+
+function getSubjectEmoji(subject: string): string {
+  const s = (subject || "").toLowerCase();
+  if (s.includes("lion")) return "🦁";
+  if (s.includes("cat") || s.includes("kitten")) return "🐱";
+  if (s.includes("dog") || s.includes("puppy")) return "🐶";
+  if (s.includes("tiger")) return "🐯";
+  if (s.includes("bear")) return "🐻";
+  if (s.includes("wolf")) return "🐺";
+  if (s.includes("fox")) return "🦊";
+  if (s.includes("bird") || s.includes("eagle") || s.includes("parrot")) return "🦅";
+  if (s.includes("horse")) return "🐎";
+  if (s.includes("elephant")) return "🐘";
+  if (s.includes("dragon")) return "🐉";
+  if (s.includes("robot") || s.includes("cyborg") || s.includes("ai")) return "🤖";
+  if (s.includes("car") || s.includes("ferrari") || s.includes("lamborghini") || s.includes("tesla")) return "🏎️";
+  if (s.includes("flower") || s.includes("rose")) return "🌹";
+  if (s.includes("space") || s.includes("galaxy") || s.includes("planet") || s.includes("star")) return "🌌";
+  if (s.includes("city") || s.includes("building") || s.includes("skyline")) return "🏙️";
+  if (s.includes("mountain") || s.includes("landscape") || s.includes("nature")) return "🏔️";
+  if (s.includes("beach") || s.includes("ocean") || s.includes("sea")) return "🌊";
+  return "🎨";
+}
+
+async function generateImageCore(params: {
+  prompt?: string;
+  editPrompt?: string;
+  originalImage?: string;
+  aspectRatio?: string;
+  style?: string;
+  variations?: number;
+  customWidth?: number;
+  customHeight?: number;
+}): Promise<{
+  imageUrl: string;
+  prompt: string;
+  enhancedPrompt: string;
+  style: string;
+  aspectRatio: string;
+  dimensions: { width: number; height: number };
+  variations: Array<{ id: string; url: string; label: string }>;
+}> {
+  const { prompt, aspectRatio, style, variations, editPrompt, originalImage, customWidth, customHeight } = params;
+  if (!prompt && !editPrompt) {
+    throw new Error("Prompt or edit instruction is required.");
+  }
+
+  const basePrompt = String(prompt || editPrompt).trim();
+  const selectedStyle = (style || "").toLowerCase();
+  const styleModifier = STYLE_PROMPTS[selectedStyle] || "";
+
+  let finalPrompt = basePrompt;
+  if (styleModifier && !basePrompt.toLowerCase().includes(selectedStyle)) {
+    finalPrompt = `${basePrompt}, ${styleModifier}`;
+  }
+
+  if (editPrompt && originalImage) {
+    finalPrompt = `Image modification: ${editPrompt}. Maintaining core subject, ${styleModifier || "high quality, professional finish"}`;
+  }
+
+  const arKey = aspectRatio || "1:1";
+  const dim = ASPECT_DIMENSIONS[arKey] || {
+    width: customWidth ? Number(customWidth) : 1024,
+    height: customHeight ? Number(customHeight) : 1024,
+  };
+  const targetWidth = Math.min(Math.max(customWidth || dim.width, 256), 2560);
+  const targetHeight = Math.min(Math.max(customHeight || dim.height, 256), 2560);
+
+  const variationCount = Math.min(Math.max(Number(variations) || 1, 1), 4);
+  const generatedVariations: Array<{ id: string; url: string; label: string }> = [];
+
+  // Attempt Gemini Native Image Generation
+  let geminiPrimaryUrl = "";
+  const ai = getGeminiClient();
+  if (ai) {
+    try {
+      const geminiAr = ["1:1", "16:9", "9:16", "4:3", "3:4"].includes(arKey) ? arKey : "1:1";
+      const response = await ai.models.generateContent({
+        model: "gemini-3.1-flash-lite-image",
+        contents: {
+          parts: [{ text: finalPrompt }],
+        },
+        config: {
+          imageConfig: {
+            aspectRatio: geminiAr,
+          },
+        },
+      });
+
+      if (response.candidates?.[0]?.content?.parts) {
+        for (const part of response.candidates[0].content.parts) {
+          if (part.inlineData && part.inlineData.data) {
+            const mime = part.inlineData.mimeType || "image/png";
+            geminiPrimaryUrl = `data:${mime};base64,${part.inlineData.data}`;
+            break;
+          }
+        }
+      }
+    } catch (geminiImgErr: any) {
+      console.warn("[Image Engine] Gemini image generation quota unavailable, using neural generation engine...");
+    }
+  }
+
+  // Generate primary or multi-variation images
+  for (let i = 0; i < variationCount; i++) {
+    if (i === 0 && geminiPrimaryUrl) {
+      generatedVariations.push({
+        id: `var-1-${Date.now()}`,
+        url: geminiPrimaryUrl,
+        label: variationCount > 1 ? "Variation 1" : "Generated Image",
+      });
+      continue;
+    }
+
+    const seed = Math.floor(Math.random() * 9000000) + 100000;
+    const seedPrompt = variationCount > 1 ? `${finalPrompt} (variation ${i + 1})` : finalPrompt;
+    const pollUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(seedPrompt)}?width=${targetWidth}&height=${targetHeight}&seed=${seed}&nologo=true`;
+
+    const fetched = await fetchImageBuffer(pollUrl);
+    const urlToUse = fetched ? fetched.dataUrl : pollUrl;
+
+    generatedVariations.push({
+      id: `var-${i + 1}-${Date.now()}`,
+      url: urlToUse,
+      label: `Variation ${i + 1}`,
+    });
+  }
+
+  const primaryImageUrl = generatedVariations[0]?.url || "";
+  if (!primaryImageUrl) {
+    throw new Error("No image data could be synthesized.");
+  }
+
+  return {
+    imageUrl: primaryImageUrl,
+    prompt: basePrompt,
+    enhancedPrompt: finalPrompt,
+    style: selectedStyle || "default",
+    aspectRatio: arKey,
+    dimensions: { width: targetWidth, height: targetHeight },
+    variations: generatedVariations,
+  };
+}
+
+// Strips out any JSON object that contains 'action', 'action_input', or 'thought' keys
+function removeToolJSONObjects(str: string): string {
+  if (!str || typeof str !== "string") return "";
+  let result = "";
+  let i = 0;
+  while (i < str.length) {
+    if (str[i] === "{") {
+      let depth = 0;
+      let inString = false;
+      let escape = false;
+      const start = i;
+      let end = -1;
+      for (let j = i; j < str.length; j++) {
+        const ch = str[j];
+        if (escape) {
+          escape = false;
+          continue;
+        }
+        if (ch === "\\" && inString) {
+          escape = true;
+          continue;
+        }
+        if (ch === '"') {
+          inString = !inString;
+          continue;
+        }
+        if (!inString) {
+          if (ch === "{") depth++;
+          else if (ch === "}") {
+            depth--;
+            if (depth === 0) {
+              end = j + 1;
+              break;
+            }
+          }
+        }
+      }
+
+      if (end !== -1) {
+        const candidate = str.substring(start, end);
+        const hasToolKeys = /"(?:action|action_input|thought)"\s*:/i.test(candidate);
+        if (hasToolKeys) {
+          i = end;
+          continue;
+        } else {
+          try {
+            const parsed = JSON.parse(candidate);
+            if (parsed && typeof parsed === "object" && ("action" in parsed || "action_input" in parsed || "thought" in parsed)) {
+              i = end;
+              continue;
+            }
+          } catch (_) {}
+        }
+      }
+    }
+    result += str[i];
+    i++;
+  }
+  return result;
+}
+
+// Intercepts any leaked model tool calls or JSON and converts them to professional assistant responses
+async function sanitizeAndProcessModelResponse(replyText: string, userMessage: string): Promise<{
+  reply: string;
+  generatedImage?: any;
+  creation?: any;
+}> {
+  // Check for JSON tool call or ReAct syntax requesting image generation
+  const isImageToolJson = /"action"\s*:\s*"(?:dalle\.text2im|generate_image|image_generation|image_generator|text2im)"/i.test(replyText);
+  if (isImageToolJson) {
+    try {
+      let extractedPrompt = "";
+      const jsonMatch = replyText.match(/\{[\s\S]*"action"[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          const parsed = JSON.parse(jsonMatch[0]);
+          if (typeof parsed.action_input === "string") {
+            try {
+              const inner = JSON.parse(parsed.action_input);
+              extractedPrompt = inner.prompt || inner.query || parsed.action_input;
+            } catch {
+              extractedPrompt = parsed.action_input;
+            }
+          } else if (parsed.action_input && typeof parsed.action_input === "object") {
+            extractedPrompt = parsed.action_input.prompt || parsed.action_input.query || "";
+          }
+        } catch {
+          const pMatch = replyText.match(/"prompt"\s*:\s*"([^"]+)"/);
+          if (pMatch) extractedPrompt = pMatch[1];
+        }
+      }
+
+      if (!extractedPrompt) {
+        const genCheck = detectImageGenerationPrompt(userMessage);
+        extractedPrompt = genCheck.prompt || userMessage;
+      }
+
+      const imgRes = await generateImageCore({ prompt: extractedPrompt });
+      if (imgRes && imgRes.imageUrl) {
+        const cleanSubj = (detectImageGenerationPrompt(userMessage).subject || "requested").trim();
+        const emoji = getSubjectEmoji(cleanSubj);
+        return {
+          reply: `Here is your generated ${cleanSubj} image. ${emoji}`,
+          generatedImage: {
+            url: imgRes.imageUrl,
+            prompt: extractedPrompt,
+            style: imgRes.style,
+            aspectRatio: imgRes.aspectRatio,
+          },
+          creation: {
+            type: "image",
+            prompt: extractedPrompt,
+            style: imgRes.style,
+            imageUrl: imgRes.imageUrl,
+          },
+        };
+      }
+    } catch (e) {
+      console.warn("Tool JSON image gen fallback failed:", e);
+    }
+
+    return {
+      reply: "I can generate images, but the image-generation service is currently unavailable. Please try again.",
+    };
+  }
+
+  // Remove any internal tool call objects, action/action_input JSON, or thoughts
+  let cleanText = replyText;
+
+  // Remove full JSON tool-call blocks like ```json\n{"action":...}\n``` or {"action": ...}
+  cleanText = cleanText.replace(/```(?:json)?\s*\{[\s\S]*?"(?:action|tool|function|action_input|thought)"[\s\S]*?\}\s*```/gi, "");
+  cleanText = removeToolJSONObjects(cleanText);
+  cleanText = cleanText.replace(/\{[\s\S]*?"(?:action|tool|function)"\s*:\s*"[^"]+"[\s\S]*?\}/gi, "");
+  cleanText = cleanText.replace(/\{[\s\S]*?"action_input"\s*:[\s\S]*?\}/gi, "");
+  cleanText = cleanText.replace(/\{[\s\S]*?"thought"\s*:\s*"[^"]*"[\s\S]*?\}/gi, "");
+
+  // Remove ReAct tokens and tags
+  cleanText = cleanText.replace(/^Thought:\s*.*$/gim, "");
+  cleanText = cleanText.replace(/^Action:\s*.*$/gim, "");
+  cleanText = cleanText.replace(/^Action Input:\s*.*$/gim, "");
+  cleanText = cleanText.replace(/^Observation:\s*.*$/gim, "");
+  cleanText = cleanText.replace(/<thought>[\s\S]*?<\/thought>/gi, "");
+  cleanText = cleanText.replace(/<tool_call>[\s\S]*?<\/tool_call>/gi, "");
+  cleanText = cleanText.replace(/<function_call>[\s\S]*?<\/function_call>/gi, "");
+  cleanText = cleanText.replace(/<tool_response>[\s\S]*?<\/tool_response>/gi, "");
+
+  cleanText = cleanText.trim();
+  if (!cleanText) {
+    cleanText = "I'm here to help with your questions, coding, research, files, and images. What would you like to explore?";
+  }
+
+  return { reply: cleanText };
+}
+
 function shouldSearchWeb(message: string, explicitlyEnabled?: boolean): boolean {
   if (explicitlyEnabled) return true;
   const text = (message || "").trim().toLowerCase();
   if (!text) return false;
+
+  // Image generation requests must NEVER trigger web search
+  if (detectImageGenerationPrompt(text).isGen) {
+    return false;
+  }
 
   // Direct time and date queries never search the web
   if (detectDirectTimeOrDateQuery(text)) {
@@ -1096,44 +1717,67 @@ function shouldSearchWeb(message: string, explicitlyEnabled?: boolean): boolean 
     text.includes("check online") ||
     text.includes("look up online") ||
     text.includes("real time") ||
-    text.includes("real-time")
+    text.includes("real-time") ||
+    text.includes("deep research")
   ) {
     return true;
   }
 
-  // Real-world knowledge queries requiring live factual search
-  const liveKeywords = [
-    "latest news",
-    "breaking news",
-    "current weather",
-    "weather forecast",
-    "today's weather",
-    "stock price",
-    "crypto price",
-    "bitcoin price",
-    "live score",
-    "match score",
-    "election results",
-    "what happened today",
-    "current price of",
-    "recent news",
-    "latest updates",
-    "founder of",
-    "who founded",
-    "ceo of",
-    "who is the ceo",
-    "who is the founder",
-    "who owns",
-    "headquarters of",
-    "net worth of",
-    "release date of",
-  ];
-
-  for (const kw of liveKeywords) {
-    if (text.includes(kw)) return true;
+  // Pure code / math / basic concepts / self-identity queries should NOT search the web
+  if (/^(write a (python|java|c\+\+|javascript|typescript|c#|rust|go|sql) program|2\s*\+\s*2|what is machine learning\??|explain python\??|explain this project\??|explain this error(\:.*)?\??|ml ante enti\??|hello|hi|hey|greetings|who are you)$/i.test(text.trim())) {
+    return false;
   }
 
-  // Casual questions, coding, explanations, calculations, translations, writing do NOT search the web
+  // Academic leadership & faculty (worldwide colleges, universities, departments)
+  if (/\b(hod|hods|head of department|principal|principals|dean|deans|director|directors|faculty|professor|professors|prof|who teaches|teaches|lecturer|lecturers|staff|chancellor|vice chancellor|\bvc\b|teacher|teachers|mentor)\b/i.test(text)) {
+    return true;
+  }
+
+  // Academic institutions, universities, colleges worldwide
+  if (/\b(college|colleges|university|universities|school|schools|institute|institutes|campus|campuses|academy|\biit\b|\bnit\b|\biiit\b|\bbits\b|\bmit\b|stanford|harvard|oxford|cambridge|caltech|cmu|berkeley|rgm|rgmcet|nandyal|jntu|jntua|jntuh|anna university|vtu|osmania|delhi university|iisc|bits pilani)\b/i.test(text)) {
+    return true;
+  }
+
+  // Academic operational info, admissions, syllabus, cutoffs, rankings
+  if (/\b(admission|admissions|cutoff|cut-off|ranking|rankings|\bnirf\b|\bnaac\b|\bnba\b|accreditation|fee structure|fees for|placements|placement record|syllabus|curriculum|exam date|exam schedule|hall ticket|results of|schedule of|counseling|course details|courses offered)\b/i.test(text)) {
+    return true;
+  }
+
+  // Movies, box office, collections, entertainment & reviews
+  if (/\b(box office|boxoffice|collection|collections|gross|distributor share|\bshare\b|day 1|day \d+|opening day|opening weekend|worldwide collection|closing collection|hit or flop|budget of|verdict|blockbuster|theater|theatre|cinema|movie|film|trailer|teaser|ott release|imdb rating|cast of|release date of|actor|actress|hero|heroine|director)\b/i.test(text)) {
+    return true;
+  }
+
+  // Sports, cricket, football, scores, matches, tournaments, players
+  if (/\b(cricket|football|ipl|world cup|olympics|live score|match score|points table|winner of|runner up|goals|runs|wickets|batsman|bowler|player|championship|tournament)\b/i.test(text)) {
+    return true;
+  }
+
+  // Company leadership, business entities, CEOs, founders
+  if (/\b(ceo|founder|co-founder|cofounder|chairman|chairperson|managing director|\bmd\b|president of|cfo|cto|coo|leadership of|who is the ceo|who is the founder|ceo name|founder name|pvt ltd|pvt\. ltd\.|private limited|solutions pvt|technologies pvt|\bllc\b|\binc\b|\bcorp\b|startup|company|firm|corporation)\b/i.test(text)) {
+    return true;
+  }
+
+  // Government, politics & public officials
+  if (/\b(minister|prime minister|chief minister|governor|president of|cabinet minister|politician|government organization|secretariat|mpp|mla|mp|collector|commissioner)\b/i.test(text)) {
+    return true;
+  }
+
+  // Gadgets, prices, specifications, reviews, software versions, products
+  if (/\b(price of|cost of|specifications of|specs of|review of|how much is|current price|stock price|crypto price|bitcoin|latest version|latest release|new version of|current version of|documentation of)\b/i.test(text)) {
+    return true;
+  }
+
+  // Temporal triggers requiring fresh search
+  if (/\b(current|today|todays|latest|now|recently|present|currently|this year|2026|2025|latest update|breaking news|recent news|what happened today|today's news|latest news|news today|election results)\b/i.test(text)) {
+    return true;
+  }
+
+  // Inquiries asking for specific person, role, or organization details
+  if (/^(who (is|was|are)|what is the current|give (me )?(details|info) (of|about)|tell me about)\s+[a-z0-9\s]+$/i.test(text)) {
+    return true;
+  }
+
   return false;
 }
 
@@ -1141,8 +1785,8 @@ function shouldSearchImages(message: string): boolean {
   const text = (message || "").trim().toLowerCase();
   if (!text) return false;
 
-  // Artificial AI image generation prompts should not trigger web image scraping
-  if (/^(generate|create|draw|make)\s+(an?\s+)?image/i.test(text)) {
+  // Artificial AI image generation prompts should NEVER trigger web image scraping
+  if (detectImageGenerationPrompt(text).isGen || /^(generate|create|draw|make|paint|render)\s+/i.test(text)) {
     return false;
   }
 
@@ -1191,162 +1835,281 @@ function shouldSearchImages(message: string): boolean {
   return visualKeywords.some((k) => text.includes(k));
 }
 
-// Helper: Live Real-Time Web Search
-async function searchWeb(query: string): Promise<GroundingSource[]> {
-  const results: GroundingSource[] = [];
-  const cleanQ = cleanSearchQuery(query) || query;
-  const qWords = cleanQ
-    .toLowerCase()
-    .split(/\s+/)
-    .filter((w) => w.length > 2 && !["who", "what", "where", "when", "why", "how", "the", "and", "for", "with"].includes(w));
+// 1. DuckDuckGo Lite search helper via curl POST
+function searchDDGLite(query: string): Promise<GroundingSource[]> {
+  return new Promise((resolve) => {
+    const cleanQ = query.trim().replace(/[^\w\s\-\.\,\(\)]/g, " ");
+    const plusQ = encodeURIComponent(cleanQ).replace(/%20/g, "+");
+    const cmd = `curl -s -L -d "q=${plusQ}" "https://lite.duckduckgo.com/lite/" -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"`;
+    exec(cmd, { timeout: 8000 }, (err, stdout) => {
+      if (err || !stdout) return resolve([]);
+      const html = stdout || "";
+      const results: GroundingSource[] = [];
+      const rows = html.split(/<tr\b[^>]*>/i);
+      let currentResult: GroundingSource | null = null;
 
-  // 1. DuckDuckGo HTML Search
-  try {
-    const url = "https://html.duckduckgo.com/html/?q=" + encodeURIComponent(cleanQ);
-    const resp = await fetch(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-      },
-    });
-    if (resp.ok) {
-      const html = await resp.text();
-      const blocks = html.split("<div class=\"result results_links");
-      for (let i = 1; i < Math.min(blocks.length, 10); i++) {
-        const b = blocks[i];
-        const urlMatch =
-          b.match(/href="([^"]*uddg=[^"]+)"/) ||
-          b.match(/class="result__snippet[^"]*"[^>]*href="([^"]+)"/) ||
-          b.match(/<a[^>]*class="result__url"[^>]*href="([^"]+)"/);
-        const titleMatch = b.match(/<a[^>]*class="result__a"[^>]*>([\s\S]*?)<\/a>/);
-        const snipMatch = b.match(/<a[^>]*class="result__snippet"[^>]*>([\s\S]*?)<\/a>/);
-        if (titleMatch && urlMatch) {
-          let rawUrl = urlMatch[1];
-          if (rawUrl.startsWith("//")) {
-            rawUrl = "https:" + rawUrl;
-          }
-          if (rawUrl.includes("uddg=")) {
-            try {
-              const u = new URL(rawUrl.startsWith("http") ? rawUrl : "https://duckduckgo.com" + rawUrl);
-              rawUrl = decodeURIComponent(u.searchParams.get("uddg") || rawUrl);
-            } catch {}
-          }
-          if (rawUrl.includes("duckduckgo.com/y.js") || rawUrl.includes("bing.com/aclick")) continue;
-          const title = titleMatch[1].replace(/<[^>]+>/g, "").trim();
-          const snippet = snipMatch ? snipMatch[1].replace(/<[^>]+>/g, "").trim() : "";
-          if (title && rawUrl.startsWith("http")) {
+      for (const row of rows) {
+        if (row.includes("class=\x27result-link\x27") || row.includes("class=\"result-link\"")) {
+          const hrefM = row.match(/href=[\x27"]([^\x27"]+)[\x27"]/i);
+          const textM = row.match(/<a\b[^>]*class=[\x27"]result-link[\x27"][^>]*>([\s\S]*?)<\/a>/i);
+          if (hrefM && textM) {
+            let rawUrl = hrefM[1];
+            if (
+              rawUrl.includes("duckduckgo.com/y.js") ||
+              rawUrl.includes("bing.com/aclick") ||
+              rawUrl.includes("duckduckgo-help-pages")
+            ) {
+              continue;
+            }
+            if (rawUrl.includes("uddg=")) {
+              try {
+                const u = new URL(rawUrl.startsWith("http") ? rawUrl : "https://duckduckgo.com" + rawUrl);
+                rawUrl = decodeURIComponent(u.searchParams.get("uddg") || rawUrl);
+              } catch {}
+            }
+            const title = textM[1].replace(/<[^>]+>/g, "").trim();
             let domain = "";
             try {
               domain = new URL(rawUrl).hostname.replace(/^www\./, "");
             } catch {}
-            results.push({ title, url: rawUrl, snippet, domain });
+            if (title && rawUrl.startsWith("http")) {
+              currentResult = { title, url: rawUrl, snippet: "", domain };
+              results.push(currentResult);
+            }
           }
-        }
-      }
-    }
-  } catch (err) {
-    console.warn("[NIVORA Web Search] DuckDuckGo search error:", err);
-  }
-
-  // 2. Wikipedia Search API as verified supplementary/fallback
-  const genericWikiTerms = new Set([
-    "founder",
-    "entrepreneur",
-    "company",
-    "software",
-    "business",
-    "chief executive officer",
-    "corporation",
-    "technology",
-    "enterprise",
-    "startup company",
-    "board of directors",
-    "investor",
-    "organization",
-  ]);
-
-  try {
-    const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanQ)}&format=json&utf8=1&srlimit=4`;
-    const wRes = await fetch(wikiUrl, {
-      headers: { "User-Agent": "NivoraAssistant/1.0" },
-    });
-    if (wRes.ok) {
-      const wData = await wRes.json();
-      for (const item of wData.query?.search || []) {
-        const title = (item.title || "").trim();
-        const lowerTitle = title.toLowerCase();
-
-        // If searching for a specific brand/company/person, skip generic concept dictionary articles
-        if (qWords.length > 0 && genericWikiTerms.has(lowerTitle)) {
           continue;
         }
 
-        const snippet = item.snippet?.replace(/<[^>]+>/g, "").trim();
-        const url = `https://en.wikipedia.org/wiki/${encodeURIComponent(title.replace(/\s+/g, "_"))}`;
-        if (!results.some((r) => r.url === url)) {
-          results.push({
-            title: `${title} (Wikipedia)`,
-            url,
-            snippet,
-            domain: "wikipedia.org",
-          });
+        if (row.includes("class=\x27result-snippet\x27") || row.includes("class=\"result-snippet\"")) {
+          const snipM = row.match(/<td\b[^>]*class=[\x27"]result-snippet[\x27"][^>]*>([\s\S]*?)<\/td>/i);
+          if (snipM && currentResult && !currentResult.snippet) {
+            currentResult.snippet = snipM[1].replace(/<[^>]+>/g, "").trim();
+          }
         }
       }
-    }
-  } catch (err) {
-    console.warn("[NIVORA Web Search] Wikipedia search error:", err);
-  }
+      resolve(results);
+    });
+  });
+}
 
-  // 3. DuckDuckGo Instant Answer API for official facts/definitions
-  if (results.length < 3) {
-    try {
-      const iaUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(cleanQ)}&format=json`;
-      const iaRes = await fetch(iaUrl);
-      if (iaRes.ok) {
-        const ia = await iaRes.json();
-        if (ia.AbstractText && ia.AbstractURL && !results.some((r) => r.url === ia.AbstractURL)) {
-          results.unshift({
-            title: ia.Heading || cleanQ,
+// 2. Google News RSS search for current events, box office, sports, 2026 news
+async function searchGoogleNews(query: string): Promise<GroundingSource[]> {
+  try {
+    const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return [];
+    const xml = await res.text();
+    const items = [...xml.matchAll(/<item>[\s\S]*?<title>([\s\S]*?)<\/title>[\s\S]*?<link>([\s\S]*?)<\/link>[\s\S]*?<pubDate>([\s\S]*?)<\/pubDate>(?:[\s\S]*?<source[^>]*>([\s\S]*?)<\/source>)?/gi)];
+    const results: GroundingSource[] = [];
+    for (const it of items.slice(0, 4)) {
+      const rawTitle = (it[1] || "").replace(/<[^>]+>/g, "").trim();
+      const rawUrl = (it[2] || "").trim();
+      const pubDate = (it[3] || "").trim();
+      const srcName = (it[4] || "").replace(/<[^>]+>/g, "").trim();
+      if (rawTitle && rawUrl) {
+        results.push({
+          title: rawTitle,
+          url: rawUrl,
+          snippet: `Reported on ${pubDate}${srcName ? ` by ${srcName}` : ""}.`,
+          domain: srcName || "news.google.com",
+        });
+      }
+    }
+    return results;
+  } catch {
+    return [];
+  }
+}
+
+// 3. Wikipedia API search for verified organizations, biographies, definitions
+async function searchWikipedia(query: string): Promise<GroundingSource[]> {
+  try {
+    const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&utf8=1&srlimit=4`;
+    const res = await fetch(wikiUrl, {
+      headers: { "User-Agent": "NivoraAssistant/1.0" },
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    const results: GroundingSource[] = [];
+    for (const item of data.query?.search || []) {
+      const title = (item.title || "").trim();
+      const snippet = (item.snippet || "").replace(/<[^>]+>/g, "").trim();
+      const url = `https://en.wikipedia.org/wiki/${encodeURIComponent(title.replace(/\s+/g, "_"))}`;
+      results.push({
+        title: `${title} (Wikipedia)`,
+        url,
+        snippet,
+        domain: "wikipedia.org",
+      });
+    }
+    return results;
+  } catch {
+    return [];
+  }
+}
+
+// 4. DuckDuckGo Instant Answer API
+async function searchDDGInstant(query: string): Promise<GroundingSource[]> {
+  try {
+    const iaUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json`;
+    const iaRes = await fetch(iaUrl, { signal: AbortSignal.timeout(4000) });
+    if (iaRes.ok) {
+      const ia = await iaRes.json();
+      if (ia.AbstractText && ia.AbstractURL) {
+        return [
+          {
+            title: ia.Heading || query,
             url: ia.AbstractURL,
             snippet: ia.AbstractText,
             domain: new URL(ia.AbstractURL).hostname.replace(/^www\./, ""),
-          });
-        }
+          },
+        ];
       }
+    }
+  } catch {}
+  return [];
+}
+
+// 5. Deep Web Page Content Fetcher for Authoritative / Official Websites
+function fetchPageContentExtract(url: string, keywords: string[]): Promise<string | null> {
+  return new Promise((resolve) => {
+    exec(
+      `curl -s -L --max-time 5 "${url}" -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"`,
+      { maxBuffer: 1024 * 1024 * 4 },
+      (err, stdout) => {
+        if (err || !stdout) return resolve(null);
+        let clean = stdout
+          .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, " ")
+          .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, " ")
+          .replace(/<svg\b[^<]*(?:(?!<\/svg>)<[^<]*)*<\/svg>/gi, " ")
+          .replace(/<[^>]+>/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        if (!clean) return resolve(null);
+
+        const lower = clean.toLowerCase();
+        for (const kw of keywords) {
+          const idx = lower.indexOf(kw.toLowerCase());
+          if (idx !== -1) {
+            const extract = clean.slice(Math.max(0, idx - 120), Math.min(clean.length, idx + 450)).trim();
+            return resolve(extract);
+          }
+        }
+        return resolve(clean.slice(0, 500));
+      }
+    );
+  });
+}
+
+// Comprehensive Universal Deep Web Research System
+async function performDeepWebResearch(query: string): Promise<{
+  sources: GroundingSource[];
+  deepExtracts: string[];
+}> {
+  const cleanQ = cleanSearchQuery(query) || query;
+  const isTemporalOrNews = /\b(current|today|latest|news|box office|collection|ipl|score|2026|2025|match|movie)\b/i.test(cleanQ);
+
+  // 1. Initial multi-engine search
+  const [ddgResults, newsResults, wikiResults, instantResults] = await Promise.all([
+    searchDDGLite(cleanQ),
+    isTemporalOrNews ? searchGoogleNews(cleanQ) : Promise.resolve([]),
+    searchWikipedia(cleanQ),
+    searchDDGInstant(cleanQ),
+  ]);
+
+  let allResults = [...ddgResults, ...newsResults, ...instantResults, ...wikiResults];
+
+  // 2. "DO NOT STOP TOO EARLY" - Multi-Stage Query Refinement
+  // If query is about faculty/HOD/dean/leadership or an organization and we have fewer than 2 authoritative sources:
+  const isLeadershipOrCollege = /\b(hod|faculty|dean|principal|professor|college|university|rgm|rgmcet|campus|ceo|founder)\b/i.test(cleanQ);
+  if (isLeadershipOrCollege && (!allResults.some((r) => r.domain?.match(/\.(edu|ac\.in|gov|org)$/i)) || allResults.length < 3)) {
+    const refinedQ = `${cleanQ} official faculty HOD`;
+    try {
+      const refinedDDG = await searchDDGLite(refinedQ);
+      allResults.push(...refinedDDG);
     } catch {}
   }
 
-  // Deduplicate and rank by query match relevance & authoritative domains
+  // 3. Deduplicate
   const seenUrls = new Set<string>();
-  const uniqueResults: GroundingSource[] = [];
-
-  for (const r of results) {
-    if (!seenUrls.has(r.url)) {
-      seenUrls.add(r.url);
-      uniqueResults.push(r);
-    }
+  const uniqueList: GroundingSource[] = [];
+  for (const r of allResults) {
+    if (!r.url || seenUrls.has(r.url)) continue;
+    seenUrls.add(r.url);
+    uniqueList.push(r);
   }
 
-  uniqueResults.sort((a, b) => {
-    // Score based on query keyword matches
-    const scoreA = qWords.reduce(
-      (acc, w) => acc + (a.title.toLowerCase().includes(w) ? 3 : 0) + ((a.snippet || "").toLowerCase().includes(w) ? 1 : 0),
-      0
-    );
-    const scoreB = qWords.reduce(
-      (acc, w) => acc + (b.title.toLowerCase().includes(w) ? 3 : 0) + ((b.snippet || "").toLowerCase().includes(w) ? 1 : 0),
-      0
-    );
-    if (scoreB !== scoreA) return scoreB - scoreA;
-
-    const isOfficialA = Boolean(a.domain?.match(/\.(edu|ac\.in|gov|org)$/i) || a.domain?.includes("rgmcet"));
-    const isOfficialB = Boolean(b.domain?.match(/\.(edu|ac\.in|gov|org)$/i) || b.domain?.includes("rgmcet"));
+  // 4. Sort strictly by SOURCE PRIORITY:
+  // 1. Official website (.edu, .ac.in, .gov, or direct institution/organization domain)
+  // 2. Official department / faculty page
+  // 3. Official company website
+  // 4. Official profile / publications
+  // 5. Government databases
+  // 6. Reputable news organizations
+  // 7. Reputable databases / Wikipedia
+  // 8. Other reliable sources
+  uniqueList.sort((a, b) => {
+    const isOfficialA = Boolean(a.domain?.match(/\.(edu|ac\.in|gov|nic\.in)$/i) || a.domain?.includes("rgmcet"));
+    const isOfficialB = Boolean(b.domain?.match(/\.(edu|ac\.in|gov|nic\.in)$/i) || b.domain?.includes("rgmcet"));
     if (isOfficialA && !isOfficialB) return -1;
     if (!isOfficialA && isOfficialB) return 1;
+
+    const isOrgA = Boolean(a.domain?.match(/\.(org)$/i));
+    const isOrgB = Boolean(b.domain?.match(/\.(org)$/i));
+    if (isOrgA && !isOrgB) return -1;
+    if (!isOrgA && isOrgB) return 1;
+
     return 0;
   });
 
-  return uniqueResults.slice(0, 6);
+  const topSources = uniqueList.slice(0, 6);
+
+  // 5. DEEP RESEARCH: Scrape extracts from top authoritative/official pages
+  const deepExtracts: string[] = [];
+  const authoritativeToScrape = topSources.filter((s) =>
+    Boolean(s.domain?.match(/\.(edu|ac\.in|gov|org)$/i) || s.domain?.includes("rgmcet") || s.url.includes("faculty"))
+  ).slice(0, 2);
+
+  const keywords = [
+    "head of the department",
+    "head of department",
+    "hod",
+    "associate professor",
+    "professor & hod",
+    "professor and head",
+    "principal",
+    "dean",
+    "director",
+    "faculty",
+    "designation",
+    "qualification",
+    "ph.d",
+    "m.tech",
+  ];
+
+  await Promise.all(
+    authoritativeToScrape.map(async (src) => {
+      try {
+        const textExtract = await fetchPageContentExtract(src.url, keywords);
+        if (textExtract && textExtract.length > 30) {
+          deepExtracts.push(`[SOURCE: ${src.title} (${src.url})]\n${textExtract}`);
+        }
+      } catch {}
+    })
+  );
+
+  return {
+    sources: topSources,
+    deepExtracts,
+  };
+}
+
+// Compatibility helper: Live Real-Time Web Search
+async function searchWeb(query: string): Promise<GroundingSource[]> {
+  const res = await performDeepWebResearch(query);
+  return res.sources;
 }
 
 // Helper: Web Image Search
@@ -1564,6 +2327,28 @@ function detectFileRequest(prompt: string): { requested: boolean; format: Genera
   return { requested: false, format: "txt" };
 }
 
+function extractResponseText(response: any): string {
+  if (!response) return "";
+  if (typeof response.text === "string" && response.text.trim()) {
+    return response.text.trim();
+  }
+  if (typeof response.text === "function") {
+    try {
+      const t = response.text();
+      if (typeof t === "string" && t.trim()) return t.trim();
+    } catch (_) {}
+  }
+  const candidate = response.candidates?.[0];
+  if (candidate?.content?.parts && Array.isArray(candidate.content.parts)) {
+    const texts = candidate.content.parts
+      .map((p: any) => p.text || "")
+      .filter(Boolean)
+      .join("\n");
+    if (texts.trim()) return texts.trim();
+  }
+  return "";
+}
+
 // Helper: Call Google Gemini
 async function callGemini(
   prompt: string,
@@ -1657,11 +2442,11 @@ async function callGemini(
 
   // Supported model priority hierarchy per @google/genai guidelines:
   // gemini-3.1-flash-lite provides ultra-fast latency & resilient availability
-  // gemini-flash-latest and gemini-3.8-flash provide high-tier multimodal vision
+  // gemini-3.8-flash and gemini-flash-latest provide high-tier multimodal vision
   const candidateModels = [
     "gemini-3.1-flash-lite",
-    "gemini-flash-latest",
     "gemini-3.8-flash",
+    "gemini-flash-latest",
     process.env.GEMINI_MODEL,
   ].filter(Boolean) as string[];
 
@@ -1670,6 +2455,7 @@ async function callGemini(
 
   let response: any;
   let lastErr: any;
+  let extractedText = "";
 
   for (const model of uniqueModels) {
     try {
@@ -1678,7 +2464,8 @@ async function callGemini(
         contents,
         config,
       });
-      if (response?.text) break;
+      extractedText = extractResponseText(response);
+      if (extractedText) break;
     } catch (err: any) {
       lastErr = err;
       const status = err?.status || err?.code || "unknown";
@@ -1695,7 +2482,8 @@ async function callGemini(
             contents,
             config,
           });
-          if (response?.text) break;
+          extractedText = extractResponseText(response);
+          if (extractedText) break;
         } catch (retryErr: any) {
           lastErr = retryErr;
         }
@@ -1703,13 +2491,13 @@ async function callGemini(
     }
   }
 
-  if (!response?.text) {
-    markProviderExhausted("gemini", 1000 * 60 * 2);
+  if (!extractedText) {
+    markProviderExhausted("gemini", 1000 * 30);
     if (lastErr) throw lastErr;
     throw new Error("All Gemini models returned empty response.");
   }
 
-  const text = response?.text || "I was unable to generate a response. Please try again.";
+  const text = extractedText || "Sorry, I couldn't process that request right now. Please try again.";
 
   // Extract grounding sources if any
   const sources: GroundingSource[] = [];
@@ -2165,6 +2953,82 @@ async function handleChatRequest(req: express.Request, res: express.Response) {
           });
         }
       }
+
+      // Direct check for Image Generation request (only if no files/images are attached)
+      const imageGenCheck = detectImageGenerationPrompt(message);
+      if (imageGenCheck.isGen && !file && (!req.body.files || req.body.files.length === 0)) {
+        try {
+          const imgResult = await generateImageCore({
+            prompt: imageGenCheck.prompt,
+            style: imageGenCheck.style,
+            aspectRatio: imageGenCheck.aspectRatio,
+          });
+          const emoji = getSubjectEmoji(imageGenCheck.subject);
+          const replyMsg = `Here is your generated ${imageGenCheck.subject} image. ${emoji}`;
+          const isStream = Boolean(req.body.stream || req.headers.accept?.includes("text/event-stream"));
+          const genImgData = {
+            url: imgResult.imageUrl,
+            prompt: imageGenCheck.prompt,
+            subject: imageGenCheck.subject,
+            style: imgResult.style,
+            aspectRatio: imgResult.aspectRatio,
+          };
+          const creationData = {
+            type: "image",
+            prompt: imageGenCheck.prompt,
+            style: imgResult.style,
+            imageUrl: imgResult.imageUrl,
+          };
+
+          if (isStream) {
+            res.setHeader("Content-Type", "text/event-stream");
+            res.setHeader("Cache-Control", "no-cache");
+            res.setHeader("Connection", "keep-alive");
+            res.flushHeaders?.();
+            res.write(`data: ${JSON.stringify({ type: "delta", text: replyMsg })}\n\n`);
+            res.write(
+              `data: ${JSON.stringify({
+                type: "done",
+                reply: replyMsg,
+                provider: "NIVORA AI",
+                generatedImage: genImgData,
+                creation: creationData,
+              })}\n\n`
+            );
+            return res.end();
+          }
+
+          return res.json({
+            reply: replyMsg,
+            provider: "NIVORA AI",
+            generatedImage: genImgData,
+            creation: creationData,
+          });
+        } catch (imgGenErr) {
+          console.warn("[NIVORA Image Gen] Generation failed:", imgGenErr);
+          const failMsg = "I can generate images, but the image-generation service is currently unavailable. Please try again.";
+          const isStream = Boolean(req.body.stream || req.headers.accept?.includes("text/event-stream"));
+          if (isStream) {
+            res.setHeader("Content-Type", "text/event-stream");
+            res.setHeader("Cache-Control", "no-cache");
+            res.setHeader("Connection", "keep-alive");
+            res.flushHeaders?.();
+            res.write(`data: ${JSON.stringify({ type: "delta", text: failMsg })}\n\n`);
+            res.write(
+              `data: ${JSON.stringify({
+                type: "done",
+                reply: failMsg,
+                provider: "NIVORA AI",
+              })}\n\n`
+            );
+            return res.end();
+          }
+          return res.json({
+            reply: failMsg,
+            provider: "NIVORA AI",
+          });
+        }
+      }
     }
 
     // Build context with files, current time, and memory
@@ -2172,17 +3036,17 @@ async function handleChatRequest(req: express.Request, res: express.Response) {
 
     // Inject multimodal vision instructions when images are attached
     if (hasImages) {
-      const visionPromptGuidance = `[VISUAL MULTIMODAL CONTEXT: ${imagesList.length} image(s) attached]:
+      const visionPromptGuidance = `[VISUAL MULTIMODAL CONTEXT: ${imagesList.length} image(s)/screenshot(s) attached]:
 You are analyzing the visual content, graphics, and text visible in the attached image(s) using Gemini native multimodal vision.
 - Thoroughly inspect all visual elements, diagrams, UI components, charts, and visible text in the image(s).
-- Read and transcribe any text, questions, code, mathematical equations, data tables, labels, or error messages visible in the image(s).
-- If the image contains interview questions, test questions, exercises, or exam problems:
-  * Extract and list each question accurately from the image.
-  * Provide complete, comprehensive, and well-reasoned answers and solutions for each question.
-- If the user asks "What is in this image?" or a general question, describe the visual elements, context, and visible content thoroughly.
-- If the user asks a question about text visible in the image, answer using the exact visual content.
-- Do NOT treat the image filename, URL, metadata, or alt text as the image content. Rely strictly on the actual visual pixels.
-- If any part of the image is blurry, cropped, low-resolution, or unreadable, clearly tell the user which specific part cannot be read instead of guessing or hallucinating.`;
+- Do NOT answer based on the filename, alt text, metadata, or outside assumptions. Analyze the actual visual pixels.
+- For screenshots:
+  * Read and transcribe visible text (OCR).
+  * Identify UI elements (windows, dialogs, buttons, menus, tabs, inputs, status bars).
+  * Interpret errors, logs, stack traces, code snippets, or warnings visible in the screenshot.
+  * Explain what is happening on screen and answer the user's question directly using the screenshot evidence.
+- If text or any part of the image is blurry, cropped, low-resolution, or unreadable, clearly state which specific part cannot be read instead of guessing.
+- If the image contains interview questions, test problems, exercises, or exam problems, provide complete, step-by-step explanations and answers.`;
 
       effectivePrompt = `${visionPromptGuidance}\n\nUser Question/Prompt: ${effectivePrompt}`;
     }
@@ -2195,16 +3059,27 @@ You are analyzing the visual content, graphics, and text visible in the attached
     effectivePrompt = `[CURRENT LOCAL TIME & DATE]: Local Time: ${resolvedTime}${tzNote}, Local Date: ${resolvedDate}\n(User device accurate local time and date. Answer any time/date inquiries using this information. Never state you lack real-time clock access.)\n\n${effectivePrompt}`;
     if (file && file.name && file.content) {
       const lowerName = file.name.toLowerCase();
+      let docText = "";
       if (lowerName.endsWith(".docx") || lowerName.endsWith(".xlsx") || lowerName.endsWith(".xls") || lowerName.endsWith(".pptx")) {
         const extracted = await extractDocumentText(file.name, file.content);
-        if (extracted) {
-          effectivePrompt = `[Uploaded Document: ${file.name}]\n${extracted}\n\nUser Question: ${effectivePrompt}`;
-        } else {
-          effectivePrompt = `[Uploaded File: ${file.name}]\n${file.content}\n\nUser Question: ${effectivePrompt}`;
-        }
+        docText = extracted || file.content;
       } else {
-        effectivePrompt = `[Uploaded File: ${file.name}]\n${file.content}\n\nUser Question: ${effectivePrompt}`;
+        docText = file.content;
       }
+
+      effectivePrompt = `[UPLOADED DOCUMENT / FILE: "${file.name}"]
+--- DOCUMENT CONTENT START ---
+${docText}
+--- DOCUMENT CONTENT END ---
+
+[DOCUMENT VERIFICATION DIRECTIVES]:
+1. Carefully read and analyze the actual document content above.
+2. Answer the user's question primarily using the verified text in this document.
+3. Do not silently replace the document's information with outside assumptions or general knowledge.
+4. If the document does not contain the requested information or answer, you MUST explicitly state:
+"This information is not present in the provided document."
+
+[USER QUESTION]: ${effectivePrompt}`;
     }
 
     // Include user memories if enabled
@@ -2229,28 +3104,84 @@ You are analyzing the visual content, graphics, and text visible in the attached
     if (doWebSearch) {
       try {
         const cleanQ = cleanSearchQuery(message) || message;
-        const [liveSources, liveImages] = await Promise.all([
-          searchWeb(cleanQ),
+        console.log("[NIVORA Web Research] Starting deep research for query:", cleanQ);
+        const [researchRes, liveImages] = await Promise.all([
+          performDeepWebResearch(cleanQ),
           doImageSearch ? searchWebImages(cleanQ, 6) : Promise.resolve([]),
         ]);
+        const liveSources = researchRes.sources;
+        const deepExtracts = researchRes.deepExtracts;
+        console.log("[NIVORA Web Research] Live sources found:", liveSources.length, "deepExtracts:", deepExtracts.length);
+
         if (liveSources && liveSources.length > 0) {
           sources = liveSources;
           const searchContext = liveSources
             .map((s, idx) => `[Source ${idx + 1} - ${s.domain || "Web"}]: "${s.title}" (${s.url})\nSummary: ${s.snippet || "N/A"}`)
             .join("\n\n");
-          effectivePrompt = `[VERIFIED LIVE WEB SEARCH RESULTS]:\n${searchContext}\n\n[USER QUESTION]: ${effectivePrompt}\n\n[INSTRUCTIONS FOR NIVORA]:
+
+          const deepExtractContext = deepExtracts.length > 0
+            ? `\n\n[VERIFIED DEEP RESEARCH - EXTRACTED OFFICIAL SOURCE CONTENT]:\n${deepExtracts.join("\n\n---\n\n")}\n`
+            : "";
+
+          effectivePrompt = `[VERIFIED LIVE WEB RESEARCH RESULTS]:\n${searchContext}${deepExtractContext}\n\n[USER QUESTION]: ${effectivePrompt}\n\n[NIVORA UNIVERSAL ANSWER SYSTEM & VERIFICATION DIRECTIVES]:
 - You are NIVORA, an intelligent, web-connected AI assistant created by Sake Mukesh.
-- Answer the user's actual question directly and authoritatively based on the verified search findings.
-- When asked who the founder, CEO, or leadership of an entity is (e.g. ReshApp Software Solutions), state their name clearly and synthesize their background from the verified findings (e.g. Deva Nagendra Madineni).
-- NEVER say "none of the search results you supplied contain information" or "based on the provided results" — the user did not supply the search results; you are an AI assistant with live search capabilities.
-- Format your response cleanly using markdown headings and bullet points.
-- NEVER fabricate sources or URLs.`;
+- UNIVERSAL QUESTION ANSWERING: Answer the user's question directly, accurately, and completely using the verified research results.
+- NEVER leave a user question unanswered or give a generic refusal when verified information can be derived from the search results.
+- NEVER fabricate, invent, or guess people's names, faculty, HODs, CEOs, founders, dates, prices, movie collections, phone numbers, addresses, rankings, statistics, or URLs.
+- SOURCE PRIORITY ORDER:
+  1. Official website of the institution/university/government (.edu, .edu.in, .ac.in, .gov, official domain)
+  2. Official department/faculty page
+  3. Official company website / verified directory
+  4. Official profile / publications
+  5. Government databases
+  6. Reputable news organizations (BBC, The Hindu, Indian Express, Pinkvilla, IMDb, Sacnilk, Cricinfo)
+  7. Reputable professional databases / Wikipedia
+  8. Other reliable sources
+- MULTI-SOURCE VERIFICATION:
+  * Cross-check facts across sources.
+  * If multiple official sources agree, confidence is high.
+  * If sources conflict or differ: DO NOT randomly guess. Instead say:
+    "Two sources show different information. The official department page currently lists X, while another source lists Y. Based on the most recent official source, X appears to be current."
+- CURRENT INFORMATION:
+  * Check dates carefully. Prefer the newest reliable source (2026 > 2025 > 2024).
+- FOR FACULTY & COLLEGE QUESTIONS (WORLDWIDE):
+  * The user may inquire about any institution worldwide (IIT Hyderabad, MIT, Stanford, Harvard, RGM College, Oxford, etc.).
+  * For HOD / faculty / leadership queries, provide:
+    - Full Name
+    - Designation (e.g. Associate Professor & HOD, Professor & Head)
+    - Department
+    - Institution
+    - Qualification (if officially available, e.g. M.Tech, Ph.D)
+    - Relevant experience (if officially available)
+    - Official source link
+    - Current status / source date
+  * If the user asks for faculty/HOD without specifying the college, politely ask which college or university they are inquiring about.
+- FOR MOVIE BOX OFFICE & ENTERTAINMENT:
+  * Distinguish strictly between: gross collection vs distributor share, domestic/India vs overseas vs worldwide collection, opening day (Day 1) vs lifetime collection.
+  * Never confuse Andhra Pradesh collection with Andhra Pradesh + Telangana combined collection.
+  * If reliable figures are unavailable or sources report different figures, show the reported range.
+- SOURCES DISPLAY:
+  * When web research is used, provide a compact "Sources" section at the very bottom with the 2-5 most relevant source links.
+- NEVER SHOW INTERNAL RESEARCH:
+  * The user must NEVER see search tool JSON, API responses, tool calls, action objects, internal prompts, hidden reasoning, chain-of-thought, or provider information. Output ONLY the final synthesized answer and useful sources.`;
+        } else {
+          // Web search was attempted but no sources were returned
+          effectivePrompt = `[WEB SEARCH STATUS: Search attempted but no live web results were returned.]\n\n[USER QUESTION]: ${effectivePrompt}\n\n[ANSWERING POLICY & DIRECTIVES FOR NIVORA]:
+- ANSWER THE USER'S QUESTION FIRST using your best available knowledge and general reports.
+- DO NOT say "I couldn't verify this, so I cannot answer."
+  Instead say: "Based on the available reports/information, here is what I found..." and provide the best available answer.
+- Clearly indicate if exact numbers or details are estimated or reported rather than officially confirmed.
+- NEVER invent people's names or fake URLs out of thin air.`;
         }
         if (liveImages && liveImages.length > 0) {
           images = liveImages;
         }
-      } catch (searchErr) {
+      } catch (searchErr: any) {
         console.warn("[NIVORA Web Search] Search failed:", searchErr);
+        effectivePrompt = `[WEB SEARCH STATUS: Search service error.]\n\n[USER QUESTION]: ${effectivePrompt}\n\n[ANSWERING POLICY & DIRECTIVES FOR NIVORA]:
+- Answer the user's question directly using your best available knowledge.
+- State: "Based on the available reports/information, here is what I found..." and clearly state any uncertainty.
+- Do NOT refuse to answer.`;
       }
     } else if (doImageSearch) {
       try {
@@ -2319,7 +3250,7 @@ You are analyzing the visual content, graphics, and text visible in the attached
     for (const provider of providersToTry) {
       try {
         if (provider === "gemini" && process.env.GEMINI_API_KEY) {
-          const timeoutMs = hasImages ? 40000 : 8000;
+          const timeoutMs = hasImages ? 50000 : 35000;
           const result = await withTimeout(
             callGemini(effectivePrompt, history, {
               imageBase64: imagesList[0]?.data,
@@ -2345,22 +3276,22 @@ You are analyzing the visual content, graphics, and text visible in the attached
           success = true;
           break;
         } else if (provider === "groq" && process.env.GROQ_API_KEY) {
-          const result = await withTimeout(callGroq(effectivePrompt, history, {}), 8000, "groq");
+          const result = await withTimeout(callGroq(effectivePrompt, history, {}), 20000, "groq");
           replyText = result.text;
           success = true;
           break;
         } else if (provider === "openai" && process.env.OPENAI_API_KEY) {
-          const result = await withTimeout(callOpenAI(effectivePrompt, history, {}), 8000, "openai");
+          const result = await withTimeout(callOpenAI(effectivePrompt, history, {}), 20000, "openai");
           replyText = result.text;
           success = true;
           break;
         } else if (provider === "claude" && process.env.LLMSRELAY_API_KEY) {
-          const result = await withTimeout(callClaudeRelay(effectivePrompt, history, {}), 8000, "claude");
+          const result = await withTimeout(callClaudeRelay(effectivePrompt, history, {}), 20000, "claude");
           replyText = result.text;
           success = true;
           break;
         } else if (provider === "openrouter" && getOpenRouterConfig().apiKey) {
-          const result = await withTimeout(callOpenRouter(effectivePrompt, history, {}), 8000, "openrouter");
+          const result = await withTimeout(callOpenRouter(effectivePrompt, history, {}), 20000, "openrouter");
           replyText = result.text;
           success = true;
           break;
@@ -2371,16 +3302,16 @@ You are analyzing the visual content, graphics, and text visible in the attached
         const safeMsg = String(err?.message || err || "").toLowerCase();
 
         if (status === 429 || safeMsg.includes("quota") || safeMsg.includes("rate limit")) {
-          markProviderExhausted(provider, 1000 * 60 * 15);
+          markProviderExhausted(provider, 1000 * 60 * 5);
           console.warn(`[NIVORA AI Fallback] Provider '${provider}' (429), routing to next configured provider...`);
         } else if (status === 503 || status === 504 || safeMsg.includes("demand") || safeMsg.includes("unavailable")) {
-          markProviderExhausted(provider, 1000 * 60 * 2);
+          markProviderExhausted(provider, 1000 * 30);
           console.warn(`[NIVORA AI Fallback] Provider '${provider}' (503), routing to next configured provider...`);
         } else if (status === 401 || status === 402 || status === 403 || safeMsg.includes("credit") || safeMsg.includes("payment")) {
-          markProviderExhausted(provider, 1000 * 60 * 60);
+          markProviderExhausted(provider, 1000 * 60 * 15);
           console.warn(`[NIVORA AI Fallback] Provider '${provider}' (${status}), routing to next configured provider...`);
         } else {
-          markProviderExhausted(provider, 1000 * 30);
+          markProviderExhausted(provider, 1000 * 15);
           console.warn(`[NIVORA AI Fallback] Provider '${provider}' (${status}), routing to next configured provider...`);
         }
       }
@@ -2388,11 +3319,10 @@ You are analyzing the visual content, graphics, and text visible in the attached
 
     if (!success) {
       console.warn("[NIVORA AI] All configured providers failed. Last status:", lastError?.message || lastError);
-      return res.status(503).json({
-        success: false,
-        code: "ALL_AI_PROVIDERS_UNAVAILABLE",
-        error: "NIVORA AI is temporarily unavailable. Please try again.",
-        reply: "NIVORA AI is temporarily unavailable. Please try again.",
+      return res.status(200).json({
+        success: true,
+        provider: "NIVORA AI",
+        reply: "Sorry, I couldn't process that request right now. Please try again.",
       });
     }
 
@@ -2414,6 +3344,18 @@ You are analyzing the visual content, graphics, and text visible in the attached
         title: "Generated Artifact",
         code: match[2].trim(),
       };
+    }
+
+    // Intercept any internal tool calls, ReAct tokens, action/action_input JSON, or thoughts
+    let generatedImageData: any = undefined;
+    let creationData: any = undefined;
+    const modelProcessed = await sanitizeAndProcessModelResponse(replyText, message);
+    replyText = modelProcessed.reply;
+    if (modelProcessed.generatedImage) {
+      generatedImageData = modelProcessed.generatedImage;
+    }
+    if (modelProcessed.creation) {
+      creationData = modelProcessed.creation;
     }
 
     // Check if user requested a generated file
@@ -2448,6 +3390,10 @@ You are analyzing the visual content, graphics, and text visible in the attached
       .replace(/<\/?(iframe|embed|object|script|style)[^>]*>/gi, "")
       .trim();
 
+    if (!replyText || !replyText.trim()) {
+      replyText = "Sorry, I couldn't process that request right now. Please try again.";
+    }
+
     if (fileReq.requested && (!replyText || replyText.length < 5)) {
       replyText = `Done — I generated the ${fileReq.format.toUpperCase()} file (${fileReq.filename || "document"}). You can preview or download it below.`;
     }
@@ -2459,16 +3405,35 @@ You are analyzing the visual content, graphics, and text visible in the attached
       res.setHeader("Connection", "keep-alive");
       res.flushHeaders?.();
 
-      res.write(`data: ${JSON.stringify({ type: "delta", text: replyText })}\n\n`);
+      if (doWebSearch) {
+        res.write(`data: ${JSON.stringify({ type: "status", message: "Searching verified sources... 🔍" })}\n\n`);
+      }
+
+      // Stream sanitized text in natural deltas
+      const words = replyText.split(" ");
+      let currentChunk = "";
+      for (let i = 0; i < words.length; i++) {
+        currentChunk += (i > 0 ? " " : "") + words[i];
+        if (currentChunk.length >= 35 || i === words.length - 1) {
+          const cleanChunk = removeToolJSONObjects(currentChunk);
+          if (cleanChunk) {
+            res.write(`data: ${JSON.stringify({ type: "delta", text: cleanChunk })}\n\n`);
+          }
+          currentChunk = "";
+        }
+      }
+
       res.write(
         `data: ${JSON.stringify({
           type: "done",
-          reply: replyText,
+          reply: removeToolJSONObjects(replyText),
           provider: "NIVORA AI",
           sources,
           images,
           artifact,
           generatedFile,
+          generatedImage: generatedImageData,
+          creation: creationData,
         })}\n\n`
       );
       return res.end();
@@ -2481,12 +3446,15 @@ You are analyzing the visual content, graphics, and text visible in the attached
       images,
       artifact,
       generatedFile,
+      generatedImage: generatedImageData,
+      creation: creationData,
     });
   } catch (err: any) {
     console.error("Chat handler error:", err);
-    res.status(500).json({
-      reply: "Something went wrong while processing your request. Please try again.",
+    res.status(200).json({
+      reply: "Sorry, I couldn't process that request right now. Please try again.",
       error: "Internal server error",
+      provider: "NIVORA AI",
     });
   }
 }
@@ -2535,92 +3503,223 @@ app.get("/api/provider-info", (req, res) => {
 });
 
 // -------------------------------------------------------------
-// IMAGE GENERATION ENDPOINT
+// AI CREATION & GENERATION SYSTEM ENDPOINTS
 // -------------------------------------------------------------
 
 app.post("/api/generate-image", async (req, res) => {
   try {
-    const { prompt, aspectRatio } = req.body;
-    if (!prompt) {
-      res.status(400).json({ error: "Prompt is required." });
-      return;
-    }
+    const result = await generateImageCore(req.body);
+    res.json({
+      ...result,
+      originalImageUrl: req.body.originalImage || null,
+      isEdit: Boolean(req.body.editPrompt && req.body.originalImage),
+    });
+  } catch (err: any) {
+    console.warn("Image generation notice:", err?.message || err);
+    res.status(500).json({
+      error: "Image generation failed. Please try a different prompt or verify your connection.",
+      details: err?.message || String(err),
+    });
+  }
+});
 
-    let imageUrl = "";
+// Prompt Enhancer Endpoint
+app.post("/api/enhance-prompt", async (req, res) => {
+  try {
+    const { prompt, type, style } = req.body;
+    if (!prompt) {
+      return res.status(400).json({ error: "Prompt is required." });
+    }
 
     const ai = getGeminiClient();
     if (ai) {
       try {
-        const response = await ai.models.generateContent({
-          model: "gemini-3.1-flash-lite-image",
-          contents: {
-            parts: [{ text: String(prompt) }],
-          },
-          config: {
-            imageConfig: {
-              aspectRatio: aspectRatio || "1:1",
-            },
-          },
+        const sysMsg = `You are NIVORA's Expert Prompt Enhancer for AI image generation, design, and 3D creation.
+Given the user's raw idea: "${prompt}" (Style: "${style || "cinematic"}", Type: "${type || "image"}"),
+write a single, cohesive, vivid, high-detail generation prompt. Include specific composition, lighting, camera angle, textures, and color palette.
+Do NOT output markdown fences or explanations, only return the enhanced prompt text directly.`;
+
+        const resp = await ai.models.generateContent({
+          model: "gemini-3.8-flash",
+          contents: sysMsg,
         });
 
-        if (response.candidates?.[0]?.content?.parts) {
-          for (const part of response.candidates[0].content.parts) {
-            if (part.inlineData && part.inlineData.data) {
-              const mime = part.inlineData.mimeType || "image/png";
-              imageUrl = `data:${mime};base64,${part.inlineData.data}`;
-              break;
-            }
-          }
+        const enhanced = (resp.text || "").trim();
+        if (enhanced) {
+          return res.json({ enhancedPrompt: enhanced, originalPrompt: prompt });
         }
-      } catch (geminiImgErr: any) {
-        console.warn("[Image Engine] Gemini image quota unavailable, falling back to high-resolution AI engine...");
+      } catch (err) {
+        console.warn("AI prompt enhancement fallback:", err);
       }
     }
 
-    if (!imageUrl) {
-      let width = 1024;
-      let height = 1024;
-      if (aspectRatio === "16:9") {
-        width = 1280;
-        height = 720;
-      } else if (aspectRatio === "9:16") {
-        width = 720;
-        height = 1280;
-      } else if (aspectRatio === "4:3") {
-        width = 1024;
-        height = 768;
-      } else if (aspectRatio === "3:4") {
-        width = 768;
-        height = 1024;
-      }
-
-      const seed = Math.floor(Math.random() * 1000000);
-      const pollUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${width}&height=${height}&seed=${seed}&nologo=true`;
-      try {
-        const fetchResp = await fetch(pollUrl);
-        if (fetchResp.ok) {
-          const arrayBuf = await fetchResp.arrayBuffer();
-          const base64 = Buffer.from(arrayBuf).toString("base64");
-          const mime = fetchResp.headers.get("content-type") || "image/jpeg";
-          imageUrl = `data:${mime};base64,${base64}`;
-        } else {
-          imageUrl = pollUrl;
-        }
-      } catch {
-        imageUrl = pollUrl;
-      }
-    }
-
-    if (!imageUrl) {
-      throw new Error("No image data returned from model.");
-    }
-
-    res.json({ imageUrl, prompt });
+    // Heuristic enhancement fallback
+    const styleSuffix = STYLE_PROMPTS[(style || "").toLowerCase()] || "cinematic lighting, ultra-detailed 8k masterpiece, trending on Artstation";
+    const enhanced = `${prompt.trim()}, masterpiece composition, ${styleSuffix}, visually striking, award-winning aesthetics`;
+    res.json({ enhancedPrompt: enhanced, originalPrompt: prompt });
   } catch (err: any) {
-    console.warn("Image generation notice:", err?.message || err);
-    res.status(500).json({
-      error: "Image generation failed. Please try a different prompt or verify your API key.",
+    res.status(500).json({ error: "Failed to enhance prompt." });
+  }
+});
+
+// QR Code & Barcode Generator Endpoint
+app.post("/api/generate-qr", async (req, res) => {
+  try {
+    const { text, type, color, bgColor, size } = req.body;
+    if (!text) {
+      return res.status(400).json({ error: "Text or URL is required." });
+    }
+
+    let payload = String(text).trim();
+    if (type === "wifi") {
+      const { ssid, password, encryption } = req.body;
+      payload = `WIFI:S:${ssid || payload};T:${encryption || "WPA"};P:${password || ""};;`;
+    } else if (type === "vcard") {
+      const { name, phone, email, org } = req.body;
+      payload = `BEGIN:VCARD\nVERSION:3.0\nFN:${name || payload}\nTEL:${phone || ""}\nEMAIL:${email || ""}\nORG:${org || ""}\nEND:VCARD`;
+    } else if (type === "crypto") {
+      const { currency, address } = req.body;
+      payload = `${(currency || "bitcoin").toLowerCase()}:${address || payload}`;
+    }
+
+    const qrSize = Math.min(Math.max(Number(size) || 360, 180), 1200);
+    const fgColor = color || "#000000";
+    const bgCol = bgColor || "#ffffff";
+
+    const dataUrl = await QRCode.toDataURL(payload, {
+      width: qrSize,
+      margin: 2,
+      color: {
+        dark: fgColor,
+        light: bgCol,
+      },
+      errorCorrectionLevel: "H",
     });
+
+    const svgString = await QRCode.toString(payload, {
+      type: "svg",
+      width: qrSize,
+      margin: 2,
+      color: {
+        dark: fgColor,
+        light: bgCol,
+      },
+      errorCorrectionLevel: "H",
+    });
+
+    res.json({
+      success: true,
+      qrDataUrl: dataUrl,
+      svgString: svgString,
+      payload: payload,
+      type: type || "url",
+    });
+  } catch (err: any) {
+    console.error("QR Code generation error:", err);
+    res.status(500).json({ error: "Failed to generate QR code." });
+  }
+});
+
+// Presentation Generator Endpoint (Multi-slide + PPTX)
+app.post("/api/generate-presentation", async (req, res) => {
+  try {
+    const { topic, slideCount, style } = req.body;
+    if (!topic) {
+      return res.status(400).json({ error: "Topic is required." });
+    }
+
+    const count = Math.min(Math.max(Number(slideCount) || 5, 3), 12);
+    const ai = getGeminiClient();
+
+    let slides: Array<{ title: string; subtitle?: string; bullets: string[]; notes?: string }> = [];
+
+    if (ai) {
+      try {
+        const prompt = `Create a professional ${count}-slide presentation deck on: "${topic}".
+Style: ${style || "Modern Tech / Minimalist"}.
+Return ONLY a valid JSON array of slides with no markdown formatting. Schema:
+[
+  {
+    "title": "Slide Title",
+    "subtitle": "Optional Subtitle",
+    "bullets": ["Key bullet point 1", "Key bullet point 2", "Key bullet point 3"],
+    "notes": "Speaker takeaway"
+  }
+]`;
+        const resp = await ai.models.generateContent({
+          model: "gemini-3.8-flash",
+          contents: prompt,
+        });
+
+        const raw = (resp.text || "").replace(/```(json)?/gi, "").trim();
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          slides = parsed;
+        }
+      } catch (geminiErr) {
+        console.warn("Presentation AI generation warning:", geminiErr);
+      }
+    }
+
+    if (slides.length === 0) {
+      slides = [
+        {
+          title: topic,
+          subtitle: "Prepared with NIVORA AI",
+          bullets: ["Executive Overview", "Strategic Directions", "Key Opportunities"],
+        },
+        {
+          title: "Introduction & Context",
+          bullets: ["Background landscape and motivation", "Current state analysis", "Core problem statement"],
+        },
+        {
+          title: "Key Framework & Architecture",
+          bullets: ["Foundational pillars", "Operational workflow", "Performance benchmarks"],
+        },
+        {
+          title: "Implementation Roadmap",
+          bullets: ["Phase 1: Discovery & Setup", "Phase 2: Deployment & Optimization", "Phase 3: Scale & Monitoring"],
+        },
+        {
+          title: "Conclusion & Next Steps",
+          bullets: ["Summary of strategic takeaways", "Actionable recommendations", "Q&A"],
+        },
+      ];
+    }
+
+    // Build Markdown/Text content for PPTX generator
+    let pptxContent = `# ${topic}\n\n`;
+    slides.forEach((s, idx) => {
+      pptxContent += `## Slide ${idx + 1}: ${s.title}\n`;
+      if (s.subtitle) pptxContent += `_${s.subtitle}_\n\n`;
+      s.bullets.forEach((b) => {
+        pptxContent += `- ${b}\n`;
+      });
+      if (s.notes) pptxContent += `> Speaker Notes: ${s.notes}\n`;
+      pptxContent += `\n---\n\n`;
+    });
+
+    const fileResult = await generateFile({
+      format: "pptx",
+      title: topic,
+      content: pptxContent,
+      filename: `presentation-${topic.toLowerCase().replace(/[^a-z0-9]/g, "-").slice(0, 30)}.pptx`,
+    });
+
+    const b64 = fileResult.buffer.toString("base64");
+    const mime = fileResult.mimeType.split(";")[0];
+
+    res.json({
+      success: true,
+      topic,
+      slides,
+      slideCount: slides.length,
+      downloadUrl: `data:${mime};base64,${b64}`,
+      filename: fileResult.filename,
+    });
+  } catch (err: any) {
+    console.error("Presentation generation error:", err);
+    res.status(500).json({ error: "Failed to generate presentation." });
   }
 });
 
